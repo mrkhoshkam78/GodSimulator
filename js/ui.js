@@ -174,35 +174,67 @@ const UI = {
   },
   closeModal() { document.getElementById("modal").classList.add("hidden"); },
 
+  fieldHtml(f) {
+    if (f.type === "select") {
+      return `<div class="form-row"><label>${f.label}</label><select id="pw-${f.id}">${
+        f.options.map(o=>`<option value="${o.value}">${o.label}</option>`).join("")
+      }</select></div>`;
+    }
+    if (f.type === "range") {
+      return `<div class="form-row"><label>${f.label}: <b id="pw-${f.id}-out">${f.value}</b></label>
+        <input id="pw-${f.id}" type="range" min="${f.min}" max="${f.max}" value="${f.value}"></div>`;
+    }
+    if (f.type === "number") {
+      return `<div class="form-row"><label>${f.label}</label><input id="pw-${f.id}" type="number" value="${f.value??0}"></div>`;
+    }
+    if (f.type === "text") {
+      return `<div class="form-row"><label>${f.label}</label><textarea id="pw-${f.id}" rows="3" placeholder="${f.placeholder||""}"></textarea></div>`;
+    }
+    return `<div class="form-row"><label>${f.label}</label><input id="pw-${f.id}" type="text" placeholder="${f.placeholder||""}"></div>`;
+  },
+
   powerModal(powerId) {
     const meta = POWER_CATS.flatMap(c=>c.powers).find(p=>p.id===powerId);
-    const people = this.state.people.map(p=>`<option value="${p.id}">${p.name} (${p.alive?"زنده":"فوت"})</option>`).join("");
+    const cfg = POWER_UI[powerId] || {scope:["one"], target:true, fields:[]};
+    const pool = this.state.people.filter(p => cfg.target==="dead" ? !p.alive : true);
+    const people = pool.map(p=>`<option value="${p.id}">${p.name} · ${p.gender} · ${p.alive?"زنده":"آرام‌گرفته"}</option>`).join("");
+    const scopeLabels = {one:"یک انسان", selected:"برگزیدگان", world:"تمام جهان"};
+    const scopes = (cfg.scope||["one"]).map(s=>`<option value="${s}">${scopeLabels[s]}</option>`).join("");
+    const showTarget = cfg.target && (cfg.scope||[]).some(s=>s!=="world");
     this.modal(`
-      <h2>${meta.name}</h2>
-      <p>${meta.desc}</p>
-      <div class="form-row"><label>دامنه</label>
-        <select id="pw-scope"><option value="one">یک فرد</option><option value="selected">انتخاب‌شده‌ها</option><option value="world">کل جهان</option></select>
-      </div>
-      <div class="form-row"><label>هدف</label><select id="pw-id">${people}</select></div>
-      <div class="form-row"><label>کلید / حالت</label><input id="pw-key" placeholder="مثلا hope یا courage یا pause" /></div>
-      <div class="form-row"><label>مقدار</label><input id="pw-val" type="number" value="70" /></div>
-      <div class="form-row"><label>متن / فرمان</label><textarea id="pw-text" rows="3"></textarea></div>
-      <button class="btn-divine" id="pw-run">اجرای قدرت</button>`);
+      <h2>${icon("power")} ${meta.name}</h2>
+      <p class="meta">${meta.desc}</p>
+      ${cfg.scope && cfg.scope.length>1 ? `<div class="form-row"><label>دامنه اثر</label><select id="pw-scope">${scopes}</select></div>` : `<input type="hidden" id="pw-scope" value="${cfg.scope[0]}">`}
+      ${showTarget ? `<div class="form-row"><label>هدف</label><select id="pw-id">${people || "<option value=''>کسی در دسترس نیست</option>"}</select></div>` : `<input type="hidden" id="pw-id" value="">`}
+      ${(cfg.fields||[]).map(f=>this.fieldHtml(f)).join("")}
+      <button class="btn-divine" id="pw-run">اجرای ${meta.name}</button>`);
+    (cfg.fields||[]).forEach(f => {
+      if (f.type==="range") {
+        const el = document.getElementById("pw-"+f.id);
+        el.oninput = () => document.getElementById("pw-"+f.id+"-out").textContent = el.value;
+      }
+    });
     document.getElementById("pw-run").onclick = () => {
-      const scopeSel = document.getElementById("pw-scope").value;
+      const val = id => document.getElementById(id)?.value;
+      const scopeSel = val("pw-scope") || cfg.scope[0];
       const payload = {
-        scope: scopeSel==="world"?"world":"one",
-        id: document.getElementById("pw-id").value,
-        ids: scopeSel==="selected"?[...this.selected]:undefined,
-        key: document.getElementById("pw-key").value,
-        value: document.getElementById("pw-val").value,
-        text: document.getElementById("pw-text").value,
-        mode: document.getElementById("pw-key").value,
-        kind: document.getElementById("pw-text").value
+        scope: scopeSel === "world" ? "world" : "one",
+        id: val("pw-id"),
+        ids: scopeSel === "selected" ? [...this.selected] : undefined,
+        key: val("pw-key"),
+        value: val("pw-value") ?? val("pw-val"),
+        text: val("pw-text"),
+        mode: val("pw-mode") || val("pw-key"),
+        kind: val("pw-kind") || val("pw-text"),
+        name: val("pw-name"),
+        gender: val("pw-gender"),
+        age: val("pw-age"),
+        job: val("pw-job")
       };
       const res = Powers.apply(this.state, powerId, payload);
+      if (typeof SFX !== "undefined") SFX.forPower(powerId);
       toast(res.msg.split("\n")[0]);
-      if (res.msg.includes("\n")) this.modal(`<h2>نتیجه</h2><p style="white-space:pre-wrap">${res.msg}</p>`);
+      if (res.msg.includes("\n")) this.modal(`<h2>نتیجهٔ ${meta.name}</h2><p style="white-space:pre-wrap">${res.msg}</p>`);
       else this.closeModal();
       this.renderAll();
     };

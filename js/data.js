@@ -62,6 +62,91 @@ const POWER_CATS = [
   ]}
 ];
 
+const POWER_UI = {
+  emotion: {scope:["one","selected","world"], target:true, fields:[
+    {id:"key", type:"select", label:"احساس", options:Object.entries(EMOTION_FA).map(([k,v])=>({value:k,label:v}))},
+    {id:"value", type:"range", label:"شدت", min:0, max:100, value:80}
+  ]},
+  personality: {scope:["one","selected"], target:true, fields:[
+    {id:"key", type:"select", label:"ویژگی", options:Object.entries(TRAIT_FA).map(([k,v])=>({value:k,label:v}))},
+    {id:"value", type:"range", label:"مقدار", min:0, max:100, value:75}
+  ]},
+  thoughts: {scope:["one","selected"], target:true, fields:[
+    {id:"text", type:"text", label:"اندیشه یا الهام", placeholder:"فکری که در دلش می‌نشیند"}
+  ]},
+  memories: {scope:["one"], target:true, fields:[
+    {id:"mode", type:"select", label:"عمل", options:[{value:"add",label:"افزودن خاطره"},{value:"clear",label:"محو کردن گذشته"}]},
+    {id:"text", type:"text", label:"متن خاطره", placeholder:"خاطره‌ای که باید کاشته شود"}
+  ]},
+  behavior: {scope:["one","selected"], target:true, fields:[
+    {id:"text", type:"text", label:"فرمان رفتار", placeholder:"به خانه بازگردد و آرام بماند"}
+  ]},
+  heal: {scope:["one","selected","world"], target:true, fields:[]},
+  lifespan: {scope:["one","selected"], target:true, fields:[
+    {id:"value", type:"number", label:"سال افزوده", value:12}
+  ]},
+  revive: {scope:["one","selected"], target:"dead", fields:[]},
+  destiny: {scope:["one"], target:true, fields:[
+    {id:"text", type:"text", label:"مسیر تازه", placeholder:"هدف یا سرنوشت جدید"}
+  ]},
+  create: {scope:["world"], target:false, fields:[
+    {id:"name", type:"input", label:"نام"},
+    {id:"gender", type:"select", label:"جنسیت", options:[{value:"مرد",label:"مرد"},{value:"زن",label:"زن"}]},
+    {id:"age", type:"number", label:"سن", value:18},
+    {id:"job", type:"input", label:"شغل"}
+  ]},
+  time: {scope:["world"], target:false, fields:[
+    {id:"mode", type:"select", label:"فرمان زمان", options:[
+      {value:"pause",label:"توقف"},{value:"normal",label:"عادی"},{value:"fast",label:"شتاب"},{value:"rewind",label:"بازگشت به نقطه ذخیره"}
+    ]}
+  ]},
+  weather: {scope:["world"], target:false, fields:[
+    {id:"text", type:"select", label:"آسمان", options:["باران مطلوب","طوفان","خشکسالی","برف","آسمان صاف"].map(x=>({value:x,label:x}))}
+  ]},
+  resources: {scope:["one","world"], target:true, fields:[
+    {id:"kind", type:"select", label:"منبع", options:["طلا","غذا","آب"].map(x=>({value:x,label:x}))}
+  ]},
+  laws: {scope:["world"], target:false, fields:[
+    {id:"text", type:"text", label:"قانون تازه", placeholder:"قانونی که بر جهان می‌نشیند"}
+  ]},
+  disaster: {scope:["world"], target:false, fields:[
+    {id:"text", type:"select", label:"فاجعه", options:["زلزله","سیل","آتش‌سوزی","طوفان سهمگین"].map(x=>({value:x,label:x}))}
+  ]},
+  seeThoughts: {scope:["one"], target:true, fields:[]},
+  seeMemories: {scope:["one"], target:true, fields:[]},
+  hearPrayers: {scope:["one","world"], target:true, fields:[]},
+  message: {scope:["one","selected"], target:true, fields:[
+    {id:"text", type:"text", label:"پیام الهی", placeholder:"سخنی که در درونشان طنین می‌اندازد"}
+  ]},
+  dream: {scope:["one","selected"], target:true, fields:[
+    {id:"text", type:"text", label:"رؤیا", placeholder:"صحنه‌ای که در خواب می‌بینند"}
+  ]},
+  wealth: {scope:["one","selected"], target:true, fields:[
+    {id:"value", type:"number", label:"مقدار ثروت", value:80}
+  ]},
+  knowledge: {scope:["one","selected"], target:true, fields:[]},
+  bless: {scope:["one","selected","world"], target:true, fields:[]},
+  punish: {scope:["one","selected"], target:true, fields:[]},
+  relations: {scope:["one"], target:true, fields:[
+    {id:"value", type:"range", label:"تغییر پیوند (−۵۰ تا ۵۰)", min:-50, max:50, value:20}
+  ]},
+  civilization: {scope:["world"], target:false, fields:[
+    {id:"text", type:"input", label:"نام تمدن", placeholder:"تمدن سپیده"}
+  ]},
+  tech: {scope:["one","world"], target:true, fields:[
+    {id:"value", type:"number", label:"تغییر سطح فناوری", value:1}
+  ]},
+  society: {scope:["world"], target:false, fields:[
+    {id:"text", type:"text", label:"نظام اجتماعی", placeholder:"قانون جامعه و اقتصاد"}
+  ]},
+  rewrite: {scope:["world"], target:false, fields:[
+    {id:"text", type:"text", label:"بازنویسی تاریخ", placeholder:"آنچه باید در تاریخ بماند"}
+  ]},
+  command: {scope:["one","selected","world"], target:true, fields:[
+    {id:"text", type:"text", label:"فرمان مطلق", placeholder:"دستوری که جهان باید بپذیرد"}
+  ]}
+};
+
 const PRAYER_TOPICS = [
   {topic:"سلامتی", text:"تنم فرسوده است؛ شفایی بفرست تا بتوانم برخیزم."},
   {topic:"عشق", text:"دلی می‌خواهم که در این جهان پهناور صدایم را بشناسد."},

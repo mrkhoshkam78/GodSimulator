@@ -13,7 +13,7 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.0.2",
+    version: "1.0.3",
     time: {day:1, year:1, speed:1, paused:false, accMs:0},
     world: {
       weather: "آسمان صاف",
@@ -42,7 +42,7 @@ const Game = {
     this.state = fromSave || seedWorld();
     if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
     this.state.time.accMs = this.state.time.accMs || 0;
-    this.state.version = "1.0.2";
+    this.state.version = "1.0.3";
     this.state.time.year = 1 + Math.floor((Math.max(1, this.state.time.day) - 1) / DAYS_PER_YEAR);
     (this.state.people||[]).forEach(p => Simulation.migratePerson(this.state, p));
     if (!this.state.prayers || this.state.prayers.length === 0) Simulation.seedPrayers(this.state, 7);
