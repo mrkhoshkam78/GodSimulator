@@ -23,20 +23,24 @@
 
   <div id="app" class="app hidden">
     <header class="topbar">
-      <button id="btn-menu" class="icon-btn" type="button" aria-label="منو"></button>
-      <div class="brand">
-        <span class="brand-mark" id="brand-ico"></span>
-        <div>
-          <strong>GOD SIMULATOR</strong>
-          <small>THE WORLD IS YOURS</small>
+      <div class="topbar-left">
+        <button id="btn-menu" class="icon-btn" type="button" aria-label="منو"></button>
+        <div class="brand">
+          <span class="brand-mark" id="brand-ico"></span>
+          <div class="brand-text">
+            <strong>GOD SIMULATOR</strong>
+            <small>THE WORLD IS YOURS</small>
+          </div>
         </div>
       </div>
       <div class="world-stats" id="world-stats"></div>
-      <div class="time-controls">
-        <button data-speed="0" title="توقف" aria-label="توقف"></button>
-        <button data-speed="1" class="active" title="عادی" aria-label="عادی"></button>
-        <button data-speed="3" title="سریع" aria-label="سریع"></button>
-        <button data-speed="8" title="بسیار سریع" aria-label="بسیار سریع"></button>
+      <div class="topbar-right">
+        <div class="time-controls">
+          <button data-speed="0" title="توقف" aria-label="توقف"></button>
+          <button data-speed="1" class="active" title="عادی" aria-label="عادی"></button>
+          <button data-speed="3" title="سریع" aria-label="سریع"></button>
+          <button data-speed="8" title="بسیار سریع" aria-label="بسیار سریع"></button>
+        </div>
         <span id="time-display">روز ۱ — سال ۱</span>
       </div>
     </header>
