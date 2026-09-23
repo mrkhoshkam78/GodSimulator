@@ -57,9 +57,11 @@ html, body { height: 100%; background: var(--void); color: var(--text); font-fam
 .hidden { display: none !important; }
 .app {
   position: relative; z-index: 4; height: 100%;
-  display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 72px 1fr;
+  display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 72px 1fr;
   grid-template-areas: "top top" "side main";
 }
+.app.nav-collapsed { grid-template-columns: 0 1fr; }
+.app.nav-collapsed .sidebar { transform: translateX(100%); pointer-events: none; opacity: 0; }
 .topbar {
   grid-area: top; display: flex; align-items: center; justify-content: space-between;
   padding: 0 1.2rem; border-bottom: 1px solid var(--stroke);
@@ -187,10 +189,69 @@ html, body { height: 100%; background: var(--void); color: var(--text); font-fam
   transition: opacity .4s;
 }
 .fx-overlay.on { opacity: 1; }
-@media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; grid-template-areas: "top" "side" "main"; overflow: auto; }
-  .sidebar { flex-direction: row; flex-wrap: wrap; border-left: none; border-bottom: 1px solid var(--stroke); }
-  .sidebar nav { display: flex; flex-wrap: wrap; gap: .3rem; }
-  .sidebar-actions { flex-direction: row; margin-top: 0; width: 100%; }
+
+.ico {
+  width: 1.15rem; height: 1.15rem; stroke: currentColor; fill: none;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto;
+}
+.ico-sm { width: .9rem; height: .9rem; }
+.ico-brand { width: 1.4rem; height: 1.4rem; stroke: var(--gold); fill: rgba(232,195,106,.15); }
+.icon-btn {
+  width: 42px; height: 42px; display: grid; place-items: center;
+  background: rgba(255,255,255,.04); border: 1px solid var(--stroke);
+  color: var(--gold); border-radius: 10px; cursor: pointer;
+}
+.nav-btn, .sidebar-actions button { display: flex; align-items: center; gap: .45rem; min-height: 44px; }
+.time-controls button { min-width: 42px; min-height: 42px; display: grid; place-items: center; color: var(--text); }
+.time-controls button .ico { width: 1rem; height: 1rem; }
+.sidebar {
+  transition: transform .28s ease, opacity .28s ease;
+  overflow: auto;
+}
+.sidebar-head {
+  display: flex; justify-content: space-between; align-items: center;
+  color: var(--gold); margin-bottom: .4rem; font-size: .9rem;
+}
+.nav-backdrop { display: none; }
+.people-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.toolbar input, .toolbar select, .toolbar button { min-height: 44px; max-width: 100%; }
+.card-actions button { min-height: 44px; }
+html, body { overflow: hidden; max-width: 100%; }
+
+@media (max-width: 960px) {
+  html, body { overflow: hidden; }
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px 1fr;
+    grid-template-areas: "top" "main";
+  }
+  .sidebar {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(84vw, 320px);
+    z-index: 25; transform: translateX(110%);
+    border-left: 1px solid var(--stroke);
+    pointer-events: none; opacity: 0;
+    flex-direction: column;
+  }
+  .app.nav-open .sidebar { transform: none; pointer-events: auto; opacity: 1; }
+  .nav-backdrop {
+    display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 24; opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .app.nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
   .world-stats { display: none; }
+  .topbar { padding: 0 .6rem; gap: .4rem; }
+  .brand small { display: none; }
+  .time-controls { flex-wrap: nowrap; }
+  #time-display { font-size: .72rem; max-width: 7.5rem; }
+  .main { padding: .75rem .7rem 1.5rem; }
+  .toolbar { flex-direction: column; }
+  .toolbar input, .toolbar select, .toolbar button { width: 100%; }
+  .people-grid { grid-template-columns: 1fr; }
+  .power-grid { grid-template-columns: 1fr; }
+  .modal-panel { width: 96vw; padding: 1rem; }
+  .prayer-acts button { min-height: 40px; }
+}
+
+@media (min-width: 961px) {
+  .app.nav-collapsed .sidebar { width: 0; padding: 0; border: 0; overflow: hidden; }
 }
