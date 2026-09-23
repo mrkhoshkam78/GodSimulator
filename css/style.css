@@ -351,7 +351,7 @@ html, body { overflow: hidden; max-width: 100%; }
   .topbar-main { gap: .4rem; min-height: 38px; }
   .brand small { display: none; }
   .brand strong { font-size: .78rem; }
-  .time-controls button { width: 32px; height: 32px; }
+  .time-controls button { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
   #time-display { font-size: .65rem; max-width: 8.5rem; }
   .stat-pill { font-size: .62rem; padding: .14rem .36rem; }
   .world-stats { gap: .25rem; }
@@ -368,14 +368,14 @@ html, body { overflow: hidden; max-width: 100%; }
   .settings-grid { grid-template-columns: 1fr; }
   .divine-banner { top: 12%; min-width: 88vw; padding: .8rem 1rem; }
   .sidebar { max-width: 100%; }
-  .icon-btn { width: 40px; height: 40px; }
+  .icon-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
 }
 
 @media (max-width: 400px) {
   .brand strong { font-size: .68rem; }
   .stat-pill { font-size: .6rem; }
-  .time-controls button { width: 32px; height: 32px; }
-  #time-display { font-size: .62rem; max-width: 8rem; }
+  .time-controls button { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+  #time-display { font-size: .62rem; max-width: 7.5rem; }
 }
 
 @media (min-width: 961px) {
@@ -628,8 +628,9 @@ html, body {
   -webkit-user-select: none;
   user-select: none;
 }
-.app, .main, .topbar, .sidebar, .view {
+.app, .main, .topbar, .sidebar, .view, .people-grid, .power-grid, .card, .toolbar {
   max-width: 100%;
+  min-width: 0;
 }
 
 /* ===== TOUCH-FRIENDLY BUTTON SIZING ===== */
@@ -944,8 +945,10 @@ button, input[type="button"], input[type="submit"], .icon-btn, .nav-btn, .theme-
     gap: .15rem;
   }
   .time-controls button {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
     font-size: .75rem;
   }
   .brand small {
@@ -963,33 +966,38 @@ button, input[type="button"], input[type="submit"], .icon-btn, .nav-btn, .theme-
     font-size: 14px;
   }
   .topbar-main {
-    min-height: 38px;
+    min-height: 42px;
     gap: .3rem;
+    flex-wrap: wrap;
   }
   .topbar-right {
     gap: .2rem;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
   }
   .time-controls button {
-    width: 32px;
-    height: 32px;
-    min-height: 32px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
   }
   .time-controls {
-    gap: .12rem;
+    gap: .15rem;
   }
   .icon-btn {
-    min-width: 38px;
-    width: 38px;
-    height: 38px;
-    min-height: 38px;
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
   }
   #time-display {
-    font-size: .6rem;
-    max-width: 6.5rem;
+    font-size: .62rem;
+    max-width: 7.5rem;
   }
   .stat-pill {
-    font-size: .56rem;
-    padding: .1rem .28rem;
+    font-size: .58rem;
+    padding: .12rem .3rem;
   }
   .toolbar {
     grid-template-columns: 1fr;
@@ -1013,13 +1021,13 @@ button, input[type="button"], input[type="submit"], .icon-btn, .nav-btn, .theme-
     font-size: 16px;
   }
   .card-actions button {
-    min-height: 36px;
+    min-height: 40px;
     font-size: .8rem;
-    padding: .35rem .4rem;
+    padding: .4rem .45rem;
   }
   .prayer-acts button {
     flex: 1 1 calc(50% - .2rem);
-    min-height: 38px;
+    min-height: 40px;
     font-size: .8rem;
     padding: .45rem .4rem;
   }
@@ -1031,8 +1039,13 @@ button, input[type="button"], input[type="submit"], .icon-btn, .nav-btn, .theme-
     gap: .35rem;
   }
   .theme-btn {
-    min-height: 40px;
+    min-height: 42px;
     font-size: .85rem;
+  }
+  .bar {
+    grid-template-columns: minmax(48px, 65px) 1fr 24px;
+    gap: .3rem;
+    font-size: .68rem;
   }
 }
 
@@ -1046,22 +1059,22 @@ button, input[type="button"], input[type="submit"], .icon-btn, .nav-btn, .theme-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 90px;
   }
   .icon-btn {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
   }
   .time-controls button {
-    width: 30px;
-    height: 30px;
-    min-height: 30px;
-    min-width: 30px;
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+    min-width: 38px;
   }
   .sidebar {
-    width: min(90vw, 290px);
+    width: min(92vw, 300px);
   }
   .modal-panel {
     width: 95vw;
@@ -1097,5 +1110,18 @@ button, input[type="button"], input[type="submit"], .icon-btn, .nav-btn, .theme-
   }
   .toolbar {
     gap: .3rem;
+  }
+  #time-display {
+    font-size: .58rem;
+    max-width: 6.2rem;
+  }
+  .bar {
+    grid-template-columns: minmax(42px, 58px) 1fr 22px;
+    font-size: .65rem;
+  }
+  .card-actions button {
+    min-height: 40px;
+    min-width: 0;
+    flex: 1 1 45%;
   }
 }
