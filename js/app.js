@@ -13,7 +13,7 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.0.5",
+    version: "1.0.6",
     time: {day:1, year:1, speed:1, paused:false, accMs:0},
     settings: { theme: "night", sfx: true },
     world: {
@@ -48,7 +48,7 @@ const Game = {
     this.state = fromSave || seedWorld();
     if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
     this.state.time.accMs = this.state.time.accMs || 0;
-    this.state.version = "1.0.5";
+    this.state.version = "1.0.6";
     this.state.settings = this.state.settings || { theme: "night", sfx: true };
     this.state.world.faith = this.state.world.faith ?? 55;
     this.state.world.awe = this.state.world.awe ?? 35;
@@ -68,23 +68,24 @@ const Game = {
 
   loop() {
     clearInterval(this.timer);
+    if (this.uiTimer) clearInterval(this.uiTimer);
+    this.uiTimer = null;
     const step = 250;
     this.timer = setInterval(() => {
       const t = this.state.time;
+      let dayAdvanced = false;
       if (!t.paused && t.speed > 0) {
         t.accMs = (t.accMs || 0) + step * t.speed;
         while (t.accMs >= REAL_MS_PER_DAY) {
           t.accMs -= REAL_MS_PER_DAY;
           Simulation.tick(this.state);
-          UI.prayers();
-          UI.stats();
+          dayAdvanced = true;
         }
       }
       UI.time();
       UI.stats();
+      if (dayAdvanced) UI.onSimTick();
     }, step);
-    this.uiTimer && clearInterval(this.uiTimer);
-    this.uiTimer = setInterval(() => UI.renderAll(), 2000);
   },
 
   stars() {
@@ -154,9 +155,16 @@ document.querySelectorAll(".nav-btn").forEach(btn => {
     document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
-    const view = document.getElementById("view-"+btn.dataset.view);
+    const viewName = btn.dataset.view;
+    UI.activeView = viewName;
+    const view = document.getElementById("view-"+viewName);
     if (view) view.classList.remove("hidden");
-    UI.renderAll();
+    if (viewName === "world") UI.grid(true);
+    else if (viewName === "prayers") UI.prayers();
+    else if (viewName === "powers") { if (!UI.powersBuilt) { UI.powers(); UI.powersBuilt = true; } }
+    else if (viewName === "events") UI.events();
+    else if (viewName === "missions" || viewName === "stats") UI.missions();
+    UI.stats();
     if (window.innerWidth <= 960) closeNav();
   };
 });

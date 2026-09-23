@@ -3,17 +3,42 @@ const UI = {
   selectMode: false,
   selected: new Set(),
   openId: null,
+  powersBuilt: false,
+  activeView: "world",
+  _mainScroll: 0,
 
-  bind(state) { this.state = state; this.renderAll(); },
+  bind(state) {
+    this.state = state;
+    this.powersBuilt = false;
+    const grid = document.getElementById("people-grid");
+    if (grid) grid.classList.add("animate-in");
+    this.renderAll(true);
+    if (grid) setTimeout(() => grid.classList.remove("animate-in"), 500);
+  },
 
-  renderAll() {
+  onSimTick() {
     this.stats();
-    this.grid();
+    this.time();
+    const pending = this.state.prayers.filter(p => p.status === "در انتظار").length;
+    const badge = document.getElementById("prayer-badge");
+    if (badge) badge.textContent = pending;
+    if (this.activeView === "world") this.grid(true);
+    else if (this.activeView === "prayers") this.prayers();
+    else if (this.activeView === "events") this.events();
+    else if (this.activeView === "missions" || this.activeView === "stats") this.missions();
+  },
+
+  renderAll(forcePowers) {
+    this.stats();
+    this.time();
+    this.grid(true);
     this.prayers();
-    this.powers();
+    if (forcePowers || !this.powersBuilt) {
+      this.powers();
+      this.powersBuilt = true;
+    }
     this.events();
     this.missions();
-    this.time();
   },
 
   time() {
@@ -32,9 +57,10 @@ const UI = {
       <span class="stat-pill">جان <b>${alive}</b></span>
       <span class="stat-pill faith">ایمان <b>${Math.round(w.faith||50)}</b></span>
       <span class="stat-pill awe">هیبت <b>${Math.round(w.awe||40)}</b></span>
-      <span class="stat-pill power">نیرو <b>${Math.round(w.divinePower??100)}</b></span>
+      <span class="stat-pill power">قدرت <b>∞</b></span>
       <span class="stat-pill">دعا <b>${pending}</b></span>`;
-    document.getElementById("prayer-badge").textContent = pending;
+    const badge = document.getElementById("prayer-badge");
+    if (badge) badge.textContent = pending;
   },
 
   filters() {
@@ -58,13 +84,16 @@ const UI = {
     return list;
   },
 
-  grid() {
+  grid(preserveScroll) {
     const el = document.getElementById("people-grid");
+    if (!el) return;
+    const main = document.querySelector(".main");
+    const scrollY = preserveScroll && main ? main.scrollTop : 0;
     const jobs = [...new Set(this.state.people.map(p=>p.job))];
     const fj = document.getElementById("filter-job");
-    if (fj.options.length<=1) jobs.forEach(j => { const o=document.createElement("option"); o.value=j; o.textContent=j; fj.appendChild(o); });
+    if (fj && fj.options.length<=1) jobs.forEach(j => { const o=document.createElement("option"); o.value=j; o.textContent=j; fj.appendChild(o); });
     const fe = document.getElementById("filter-emotion");
-    if (fe.options.length<=1) EMOTIONS.forEach(k => { const o=document.createElement("option"); o.value=k; o.textContent=EMOTION_FA[k]; fe.appendChild(o); });
+    if (fe && fe.options.length<=1) EMOTIONS.forEach(k => { const o=document.createElement("option"); o.value=k; o.textContent=EMOTION_FA[k]; fe.appendChild(o); });
 
     el.innerHTML = this.filters().map(p => {
       const em = dominantEmotion(p.emotions);
@@ -87,12 +116,20 @@ const UI = {
         ${open?this.dossier(p):""}
       </article>`;
     }).join("");
+    if (preserveScroll && main) {
+      requestAnimationFrame(() => { main.scrollTop = scrollY; });
+    }
   },
 
   dossier(p) {
-    const speech = threeLineSpeech(p, this.state);
-    p.speeches.push({day:this.state.time.day, text:speech});
-    if (p.speeches.length>12) p.speeches.shift();
+    let speech = p._lastSpeech;
+    if (!speech || p._lastSpeechDay !== this.state.time.day) {
+      speech = threeLineSpeech(p, this.state);
+      p._lastSpeech = speech;
+      p._lastSpeechDay = this.state.time.day;
+      p.speeches.push({day:this.state.time.day, text:speech});
+      if (p.speeches.length>12) p.speeches.shift();
+    }
     const bars = (obj, dict) => Object.keys(dict).map(k => {
       const v = obj[k]||0;
       return `<div class="bar"><span>${dict[k]}</span><i><span style="width:${v}%"></span></i><span>${v}</span></div>`;
@@ -214,37 +251,75 @@ const UI = {
     </div>`;
   },
 
+  currentOf(p, powerId, key) {
+    if (!p) return 50;
+    if (powerId === "emotion") return p.emotions?.[key || "hope"] ?? 50;
+    if (powerId === "personality") return p.traits?.[key || "courage"] ?? 50;
+    if (powerId === "wealth") return Math.min(200, p.wealth ?? 40);
+    if (powerId === "lifespan") return Math.max(1, (p.lifespan || 80) - (p.age || 30));
+    if (powerId === "relations") return 20;
+    if (powerId === "tech") return p.tech ?? 1;
+    return 50;
+  },
+
+  syncPowerIntensity(powerId) {
+    const id = document.getElementById("pw-id")?.value;
+    const p = this.state.people.find(x => x.id === id);
+    const key = document.getElementById("pw-key")?.value;
+    const valEl = document.getElementById("pw-value");
+    if (!valEl || !p) return;
+    const cur = this.currentOf(p, powerId, key);
+    valEl.value = cur;
+    const out = document.getElementById("pw-value-out");
+    if (out) out.textContent = cur;
+    const hint = document.getElementById("pw-intensity-hint");
+    if (hint) {
+      const label = powerId === "emotion" ? (EMOTION_FA[key] || key)
+        : powerId === "personality" ? (TRAIT_FA[key] || key) : "مقدار";
+      hint.textContent = `اکنون ${p.name}: ${label} = ${cur} — شدت را نسبت به وضعیت فعلی‌اش تنظیم کن.`;
+    }
+  },
+
   powerModal(powerId) {
     const meta = POWER_CATS.flatMap(c=>c.powers).find(p=>p.id===powerId);
     const cfg = POWER_UI[powerId] || {scope:["one"], target:true, fields:[]};
-    const cost = (DIVINE_COST && DIVINE_COST[powerId]) || 10;
     const pool = this.state.people.filter(p => cfg.target==="dead" ? !p.alive : true);
     const people = pool.map(p=>`<option value="${p.id}">${p.name} · ${p.gender} · ${p.alive?"زنده":"آرام‌گرفته"} · ایمان ${p.faith}</option>`).join("");
     const scopeLabels = {one:"یک انسان", selected:"برگزیدگان", world:"تمام جهان"};
     const scopes = (cfg.scope||["one"]).map(s=>`<option value="${s}">${scopeLabels[s]}</option>`).join("");
     const showTarget = cfg.target && (cfg.scope||[]).some(s=>s!=="world");
     const first = pool[0];
+    const needsIntensity = (cfg.fields||[]).some(f => f.id === "value");
     this.modal(`
       <h2>${icon("power")} ${meta.name}</h2>
       <p class="meta">${meta.desc}</p>
-      <div class="cost-chip">هزینه نیروی الهی: <b>${cost}</b> · موجود: <b>${Math.round(this.state.world.divinePower??100)}</b></div>
+      <div class="cost-chip">قدرت خدا نامحدود است · بدون محدودیت نیرو</div>
       <div id="pw-context">${showTarget && first ? this.personContextHtml(first) : ""}</div>
+      ${needsIntensity ? `<p class="meta" id="pw-intensity-hint">شدت بر اساس وضعیت فعلی فرد تنظیم می‌شود.</p>` : ""}
       ${cfg.scope && cfg.scope.length>1 ? `<div class="form-row"><label>دامنه اثر</label><select id="pw-scope">${scopes}</select></div>` : `<input type="hidden" id="pw-scope" value="${cfg.scope[0]}">`}
       ${showTarget ? `<div class="form-row"><label>هدف</label><select id="pw-id">${people || "<option value=''>کسی در دسترس نیست</option>"}</select></div>` : `<input type="hidden" id="pw-id" value="">`}
       ${(cfg.fields||[]).map(f=>this.fieldHtml(f)).join("")}
       <button class="btn-divine" id="pw-run">اجرای ${meta.name}</button>`);
+    const sync = () => this.syncPowerIntensity(powerId);
     const idSel = document.getElementById("pw-id");
     if (idSel) idSel.onchange = () => {
       const p = this.state.people.find(x => x.id === idSel.value);
       const box = document.getElementById("pw-context");
       if (box) box.innerHTML = this.personContextHtml(p);
+      sync();
     };
+    const keySel = document.getElementById("pw-key");
+    if (keySel) keySel.onchange = sync;
     (cfg.fields||[]).forEach(f => {
       if (f.type==="range") {
         const el = document.getElementById("pw-"+f.id);
-        el.oninput = () => document.getElementById("pw-"+f.id+"-out").textContent = el.value;
+        if (el) el.oninput = () => {
+          const o = document.getElementById("pw-"+f.id+"-out");
+          if (o) o.textContent = el.value;
+        };
       }
     });
+    sync();
     document.getElementById("pw-run").onclick = () => {
       const val = id => document.getElementById(id)?.value;
       const scopeSel = val("pw-scope") || cfg.scope[0];
@@ -267,7 +342,7 @@ const UI = {
       toast(res.msg.split("\n")[0]);
       if (res.msg.includes("\n")) this.modal(`<h2>نتیجهٔ ${meta.name}</h2><p style="white-space:pre-wrap">${res.msg}</p>`);
       else this.closeModal();
-      this.renderAll();
+      this.renderAll(false);
     };
   }
 };

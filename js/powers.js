@@ -2,16 +2,11 @@ const Powers = {
   apply(state, powerId, payload) {
     const fn = this[powerId];
     if (!fn) return { ok:false, msg:"قدرت ناشناخته" };
-    const cost = (typeof DIVINE_COST !== "undefined" ? DIVINE_COST[powerId] : 10) || 10;
-    state.world.divinePower = state.world.divinePower ?? 100;
-    if (state.world.divinePower < cost && !["seeThoughts","seeMemories","hearPrayers"].includes(powerId)) {
-      return { ok:false, msg:`نیروی الهی کافی نیست (نیاز: ${cost}، موجود: ${Math.round(state.world.divinePower)}). چند روز صبر کن تا نیرو بازگردد.` };
-    }
     const res = fn.call(this, state, payload);
     if (res.ok !== false) {
-      state.world.divinePower = clamp(state.world.divinePower - cost);
       state.world.silenceDays = 0;
-      state.world.awe = clamp((state.world.awe || 40) + Math.ceil(cost / 6));
+      state.world.awe = clamp((state.world.awe || 40) + 4);
+      state.world.divinePower = 100;
       if (["disaster","punish"].includes(powerId)) state.world.dread = clamp((state.world.dread || 20) + 8);
       if (["heal","bless","wealth","message","dream"].includes(powerId)) {
         state.world.faith = clamp((state.world.faith || 50) + 3);
