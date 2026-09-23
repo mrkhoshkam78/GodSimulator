@@ -2,8 +2,9 @@ const SFX = {
   ctx: null,
   enabled: true,
   bgmOn: true,
-  master: 0.7,
+  master: 0.72,
   bgmNodes: null,
+  bgmTimer: null,
   ensure() {
     if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (this.ctx.state === "suspended") this.ctx.resume();
@@ -34,7 +35,7 @@ const SFX = {
     try {
       const ac = this.ensure();
       const n = ac.createBufferSource();
-      const buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
+      const buf = ac.createBuffer(1, Math.floor(ac.sampleRate * dur), ac.sampleRate);
       const data = buf.getChannelData(0);
       for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
       n.buffer = buf;
@@ -79,6 +80,8 @@ const SFX = {
     };
     (map[id] || (() => this.power()))();
   },
+
+  /* Interstellar-inspired organ pad (original synthesis — not copyrighted OST) */
   startBgm() {
     if (!this.bgmOn || this.bgmNodes) return;
     try {
@@ -86,45 +89,92 @@ const SFX = {
       const master = ac.createGain();
       master.gain.value = 0.0001;
       master.connect(ac.destination);
-      master.gain.exponentialRampToValueAtTime(0.045 * this.master, ac.currentTime + 2.5);
+      master.gain.linearRampToValueAtTime(0.055 * this.master, ac.currentTime + 3);
 
-      const mk = (freq, type, vol) => {
+      const mk = (freq, type, vol, lp = 900) => {
         const o = ac.createOscillator();
         const g = ac.createGain();
         const f = ac.createBiquadFilter();
         o.type = type;
         o.frequency.value = freq;
         f.type = "lowpass";
-        f.frequency.value = 600;
+        f.frequency.value = lp;
+        f.Q.value = 0.7;
         g.gain.value = vol;
         o.connect(f); f.connect(g); g.connect(master);
         o.start();
         return { o, g, f };
       };
 
-      const drone = mk(55, "sine", 0.55);
-      const fifth = mk(82.5, "sine", 0.28);
-      const high = mk(220, "triangle", 0.08);
+      // Deep organ foundation (Interstellar-style)
+      const root = mk(55, "sine", 0.5, 400);          // A1
+      const root2 = mk(110, "sine", 0.22, 500);        // A2
+      const fifth = mk(82.41, "sine", 0.32, 450);      // E2
+      const organ = mk(220, "triangle", 0.12, 1200);   // A3 soft
+      const organ5 = mk(329.63, "triangle", 0.07, 1400); // E4
+
+      // Slow LFO on upper voices (breathing space)
       const lfo = ac.createOscillator();
       const lfoG = ac.createGain();
-      lfo.frequency.value = 0.05;
-      lfoG.gain.value = 12;
+      lfo.type = "sine";
+      lfo.frequency.value = 0.04;
+      lfoG.gain.value = 8;
       lfo.connect(lfoG);
-      lfoG.connect(high.o.frequency);
+      lfoG.connect(organ.o.frequency);
       lfo.start();
 
-      this.bgmNodes = { master, drone, fifth, high, lfo };
+      // Soft pulse swell every ~8s
+      const pulse = ac.createOscillator();
+      const pulseG = ac.createGain();
+      pulse.frequency.value = 0.12;
+      pulseG.gain.value = 0.04;
+      pulse.connect(pulseG);
+      pulseG.connect(organ5.g.gain);
+      pulse.start();
+
+      // Melodic motif loop (simple rising fourths — original pattern)
+      const motif = [220, 293.66, 329.63, 392, 329.63, 293.66];
+      let mi = 0;
+      const playMotif = () => {
+        if (!this.bgmNodes) return;
+        try {
+          const freq = motif[mi % motif.length];
+          mi++;
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          const f = ac.createBiquadFilter();
+          o.type = "sine";
+          o.frequency.value = freq;
+          f.type = "lowpass";
+          f.frequency.value = 1800;
+          g.gain.setValueAtTime(0.0001, ac.currentTime);
+          g.gain.linearRampToValueAtTime(0.035 * this.master, ac.currentTime + 0.8);
+          g.gain.linearRampToValueAtTime(0.0001, ac.currentTime + 4.5);
+          o.connect(f); f.connect(g); g.connect(master);
+          o.start();
+          o.stop(ac.currentTime + 5);
+        } catch (_) {}
+      };
+      playMotif();
+      this.bgmTimer = setInterval(playMotif, 5200);
+
+      this.bgmNodes = { master, root, root2, fifth, organ, organ5, lfo, pulse };
     } catch (_) {}
   },
   stopBgm() {
+    if (this.bgmTimer) { clearInterval(this.bgmTimer); this.bgmTimer = null; }
     if (!this.bgmNodes) return;
     try {
-      const { master, drone, fifth, high, lfo } = this.bgmNodes;
+      const n = this.bgmNodes;
       const ac = this.ctx;
-      master.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.8);
+      n.master.gain.linearRampToValueAtTime(0.0001, ac.currentTime + 1);
       setTimeout(() => {
-        try { drone.o.stop(); fifth.o.stop(); high.o.stop(); lfo.stop(); } catch (_) {}
-      }, 900);
+        try {
+          [n.root, n.root2, n.fifth, n.organ, n.organ5].forEach(x => x && x.o.stop());
+          if (n.lfo) n.lfo.stop();
+          if (n.pulse) n.pulse.stop();
+        } catch (_) {}
+      }, 1100);
     } catch (_) {}
     this.bgmNodes = null;
   },
