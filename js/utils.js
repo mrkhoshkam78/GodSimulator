@@ -1,3 +1,6 @@
+const DAYS_PER_YEAR = 360;
+const REAL_MS_PER_DAY = 30000;
+
 const uid = (p="id") => p + "_" + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const clamp = (n,a=0,b=100) => Math.max(a, Math.min(b, n));
@@ -30,6 +33,8 @@ function makePerson(overrides={}) {
   return {
     id: overrides.id || uid("h"),
     name, gender, age,
+    birthAge: overrides.birthAge ?? age,
+    birthDay: overrides.birthDay ?? 1,
     job: overrides.job || pick(JOBS),
     education: pick(["هیچ","مقدماتی","میانه","عالی"]),
     married: chance(.35),
@@ -43,7 +48,7 @@ function makePerson(overrides={}) {
     thirst: rnd(10,40),
     faith: rnd(20,90),
     alive: true,
-    lifespan: rnd(68,98),
+    lifespan: overrides.lifespan ?? rnd(72,96),
     traits, emotions,
     fears: [pick(FEARS), pick(FEARS)],
     values: [pick(VALUES), pick(VALUES)],

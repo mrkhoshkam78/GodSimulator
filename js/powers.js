@@ -84,9 +84,12 @@ const Powers = {
     return {ok:true, msg:"سرنوشت تغییر کرد."};
   },
   create(state, payload) {
+    const age = Number(payload.age || rnd(1,30));
     const p = makePerson({
       name: payload.name || pick([...NAMES_M, ...NAMES_F]),
-      age: Number(payload.age || rnd(1,30)),
+      age,
+      birthAge: age,
+      birthDay: state.time.day,
       gender: payload.gender || pick(["مرد","زن"]),
       job: payload.job || pick(JOBS)
     });

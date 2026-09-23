@@ -74,7 +74,7 @@ const UI = {
           <div>
             <h3>${p.name}</h3>
             <div class="meta">${p.id.slice(-6)} · ${p.age} سال · ${p.job}</div>
-            <span class="emotion-chip" style="color:${emotionColor(em)}">● ${EMOTION_FA[em]} · ${p.alive?"زنده":"فوت‌شده"}</span>
+            <span class="emotion-chip" style="color:${emotionColor(em)}">${icon(p.alive?"alive":"dead")} ${EMOTION_FA[em]} · ${p.alive?"زنده":"فوت‌شده"}</span>
           </div>
         </div>
         <div class="card-body">${p.activity} — ${p.home}. ایمان ${p.faith}، ثروت ${p.wealth}.</div>
@@ -136,7 +136,7 @@ const UI = {
     document.getElementById("powers-menu").innerHTML = POWER_CATS.map(cat => `
       <div class="power-cat"><h3>${cat.title}</h3>
         <div class="power-grid">${cat.powers.map(p => `
-          <div class="power-card" data-power="${p.id}"><strong>${p.name}</strong><small>${p.desc}</small></div>`).join("")}
+          <div class="power-card" data-power="${p.id}">${icon("power")}<strong>${p.name}</strong><small>${p.desc}</small></div>`).join("")}
         </div>
       </div>`).join("");
   },
@@ -159,6 +159,13 @@ const UI = {
       <div class="mission"><h3>شنونده عرش</h3><p>به ۱۰ دعا پاسخ بده. انجام‌شده: ${answered}</p></div>
       <div class="mission"><h3>معمار تمدن</h3><p>یک تمدن بیافرین. تعداد: ${this.state.world.civilizations.length}</p></div>
       <div class="mission"><h3>زمان‌دان</h3><p>جهان را تا سال ۳ پیش ببر. سال فعلی: ${this.state.time.year}</p></div>`;
+    const ages = this.state.people.filter(p=>p.alive).map(p=>p.age);
+    const avg = ages.length ? Math.round(ages.reduce((a,b)=>a+b,0)/ages.length) : 0;
+    const panel = document.getElementById("stats-panel");
+    if (panel) panel.innerHTML = `
+      <div class="mission"><h3>تقویم</h3><p>روز ${this.state.time.day} از سال ${this.state.time.year} · هر سال ${DAYS_PER_YEAR} روز · هر روز ۳۰ ثانیه واقعی</p></div>
+      <div class="mission"><h3>جمعیت</h3><p>زنده ${alive} از ${this.state.people.length} · میانگین سن ${avg} · دعاهای باز ${this.state.prayers.filter(p=>p.status==="در انتظار").length}</p></div>
+      <div class="mission"><h3>اقلیم و قانون</h3><p>${this.state.world.weather} · ${this.state.world.law}</p></div>`;
   },
 
   modal(html) {

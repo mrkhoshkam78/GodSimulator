@@ -1,14 +1,24 @@
 const Simulation = {
+  migratePerson(state, p) {
+    if (p.birthDay == null) p.birthDay = state.time.day || 1;
+    if (p.birthAge == null) p.birthAge = p.age || 20;
+    if (!p.lifespan || p.lifespan < 70) p.lifespan = Math.max(72, p.lifespan || 80);
+  },
+
+  calendarAge(state, p) {
+    const lived = Math.max(0, (state.time.day || 1) - (p.birthDay || 1));
+    return (p.birthAge || 0) + Math.floor(lived / DAYS_PER_YEAR);
+  },
+
   tick(state) {
     if (state.time.paused) return state;
-    const steps = state.time.speed;
-    for (let i = 0; i < steps; i++) this.day(state);
+    this.day(state);
     return state;
   },
 
   day(state) {
     state.time.day += 1;
-    if (state.time.day % 30 === 0) state.time.year += 1;
+    state.time.year = 1 + Math.floor((state.time.day - 1) / DAYS_PER_YEAR);
     state.world.weatherCycle = (state.world.weatherCycle + 1) % 40;
 
     state.people.forEach(p => {
@@ -24,12 +34,13 @@ const Simulation = {
   },
 
   live(state, p) {
-    if (state.time.day % 365 === 0) p.age += 1;
-    p.hunger = clamp(p.hunger + rnd(1,4) - (state.world.foodBonus||0));
-    p.thirst = clamp(p.thirst + rnd(1,3) - (state.world.waterBonus||0));
-    p.energy = clamp(p.energy - rnd(0,3) + (p.health>70?2:0));
-    if (p.hunger > 80 || p.thirst > 80) p.health = clamp(p.health - 2);
-    if (state.world.weather === "خشکسالی") p.health = clamp(p.health - 1);
+    this.migratePerson(state, p);
+    p.age = this.calendarAge(state, p);
+    p.hunger = clamp(p.hunger + rnd(1,3) - (state.world.foodBonus||0));
+    p.thirst = clamp(p.thirst + rnd(1,2) - (state.world.waterBonus||0));
+    p.energy = clamp(p.energy - rnd(0,2) + (p.health>70?2:1));
+    if (p.hunger > 85 || p.thirst > 85) p.health = clamp(p.health - 1);
+    if (state.world.weather === "خشکسالی" && chance(.35)) p.health = clamp(p.health - 1);
     if (state.world.weather === "باران مطلوب") p.hopeBoost = true;
 
     p.wealth = Math.max(0, p.wealth + Math.round(p.income * 0.2) - rnd(0,3));
@@ -47,7 +58,9 @@ const Simulation = {
     if (!p.married && p.age > 18 && chance(.015)) this.marry(state, p);
     if (p.married && chance(.01)) this.conflict(state, p);
 
-    if (p.health < 8 || p.age >= p.lifespan) this.die(state, p);
+    const oldAge = p.age >= 65 && p.age >= p.lifespan;
+    const critical = p.health <= 2 && p.age >= 50;
+    if (oldAge || critical) this.die(state, p);
 
     if (chance(.04)) {
       p.memories.push({day: state.time.day, text: pick([
@@ -86,7 +99,7 @@ const Simulation = {
     const couples = state.people.filter(p => p.alive && p.married);
     if (couples.length < 2) return;
     const parent = pick(couples);
-    const child = makePerson({age:0, job:"کودک", home:parent.home});
+    const child = makePerson({age:0, birthAge:0, birthDay:state.time.day, job:"کودک", home:parent.home});
     child.family = [parent.id];
     parent.family.push(child.id);
     state.people.push(child);

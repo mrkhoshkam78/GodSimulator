@@ -13,8 +13,8 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.0",
-    time: {day:1, year:1, speed:1, paused:false},
+    version: "1.0.1",
+    time: {day:1, year:1, speed:1, paused:false, accMs:0},
     world: {
       weather: "آسمان صاف",
       weatherCycle: 0,
@@ -40,7 +40,12 @@ const Game = {
 
   start(fromSave) {
     this.state = fromSave || seedWorld();
-    this.state.checkpoint = JSON.parse(JSON.stringify(this.state));
+    if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
+    this.state.time.accMs = this.state.time.accMs || 0;
+    this.state.version = "1.0.1";
+    this.state.time.year = 1 + Math.floor((Math.max(1, this.state.time.day) - 1) / DAYS_PER_YEAR);
+    (this.state.people||[]).forEach(p => Simulation.migratePerson(this.state, p));
+    this.state.checkpoint = JSON.parse(JSON.stringify({...this.state, checkpoint:null}));
     UI.bind(this.state);
     this.loop();
     this.stars();
@@ -48,10 +53,21 @@ const Game = {
 
   loop() {
     clearInterval(this.timer);
+    const step = 250;
     this.timer = setInterval(() => {
-      Simulation.tick(this.state);
-      UI.renderAll();
-    }, 1400);
+      const t = this.state.time;
+      if (!t.paused && t.speed > 0) {
+        t.accMs = (t.accMs || 0) + step * t.speed;
+        while (t.accMs >= REAL_MS_PER_DAY) {
+          t.accMs -= REAL_MS_PER_DAY;
+          Simulation.tick(this.state);
+        }
+      }
+      UI.time();
+      UI.stats();
+    }, step);
+    this.uiTimer && clearInterval(this.uiTimer);
+    this.uiTimer = setInterval(() => UI.renderAll(), 2000);
   },
 
   stars() {
@@ -73,6 +89,29 @@ const Game = {
   }
 };
 
+(function mountIcons(){
+  document.getElementById("btn-menu").innerHTML = icon("menu");
+  document.getElementById("btn-menu-close").innerHTML = icon("close");
+  document.getElementById("brand-ico").innerHTML = icon("brand");
+  const timeMap = {0:"pause",1:"play",3:"fast",8:"fastest"};
+  document.querySelectorAll(".time-controls button[data-speed]").forEach(b => {
+    b.innerHTML = icon(timeMap[b.dataset.speed]);
+  });
+  document.querySelectorAll("[data-ico]").forEach(el => { el.innerHTML = icon(el.dataset.ico); });
+  const sel = document.getElementById("btn-select-mode");
+  if (sel) sel.innerHTML = icon("group") + " انتخاب گروهی";
+})();
+
+const appEl = document.getElementById("app");
+function closeNav(){ appEl.classList.remove("nav-open"); }
+function toggleNav(){
+  if (window.innerWidth <= 960) appEl.classList.toggle("nav-open");
+  else appEl.classList.toggle("nav-collapsed");
+}
+document.getElementById("btn-menu").onclick = toggleNav;
+document.getElementById("btn-menu-close").onclick = closeNav;
+document.getElementById("nav-backdrop").onclick = closeNav;
+
 document.getElementById("btn-begin").onclick = () => {
   document.getElementById("intro").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
@@ -86,8 +125,10 @@ document.querySelectorAll(".nav-btn").forEach(btn => {
     document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
-    document.getElementById("view-"+btn.dataset.view).classList.remove("hidden");
+    const view = document.getElementById("view-"+btn.dataset.view);
+    if (view) view.classList.remove("hidden");
     UI.renderAll();
+    if (window.innerWidth <= 960) closeNav();
   };
 });
 
@@ -115,11 +156,11 @@ document.getElementById("people-grid").addEventListener("click", e => {
   const card = e.target.closest(".card");
   if (!card) return;
   const id = card.dataset.id;
-  if (e.target.classList.contains("toggle")) {
+  if (e.target.closest(".toggle")) {
     UI.openId = UI.openId===id ? null : id;
     UI.grid();
   }
-  if (e.target.classList.contains("pick")) {
+  if (e.target.closest(".pick")) {
     if (UI.selected.has(id)) UI.selected.delete(id); else UI.selected.add(id);
     UI.grid();
   }
@@ -168,7 +209,8 @@ document.getElementById("btn-new").onclick = () => {
   UI.bind(Game.state);
   toast("جهانی دیگر آفریده شد.");
 };
-document.getElementById("chk-audio").onchange = e => {
+const audioEl = document.getElementById("chk-audio");
+if (audioEl) audioEl.onchange = e => {
   Game.audioOn = e.target.checked;
   toast(Game.audioOn ? "صدا روشن است (زمینه کیهانی)." : "صدا خاموش شد.");
   if (Game.audioOn && !Game.ctx) {
