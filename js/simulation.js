@@ -27,7 +27,7 @@ const Simulation = {
     });
 
     if (chance(0.12)) this.randomEvent(state);
-    if (chance(0.18)) this.maybePray(state);
+    if (chance(0.42) || !state.prayers.some(pr => pr.status === "در انتظار")) this.maybePray(state);
     if (chance(0.04)) this.maybeBirth(state);
 
     if (state.time.day % 3 === 0) SaveSystem.persist(state);
@@ -93,6 +93,7 @@ const Simulation = {
     p.alive = false;
     p.activity = "آرام گرفته است";
     this.log(state, "مرگ", `${p.name} چشم از جهان فرو بست.`, [p.id]);
+    if (typeof SFX !== "undefined") SFX.death();
   },
 
   maybeBirth(state) {
@@ -106,25 +107,35 @@ const Simulation = {
     this.log(state, "تولد", `${child.name} در ${child.home} زاده شد.`, [child.id, parent.id]);
   },
 
-  maybePray(state) {
-    const living = state.people.filter(p=>p.alive);
-    if (!living.length) return;
-    const p = pick(living);
+  createPrayer(state, person) {
+    const p = person || pick(state.people.filter(x=>x.alive));
+    if (!p) return null;
     const t = pick(PRAYER_TOPICS);
     const prayer = {
       id: uid("pr"),
       personId: p.id,
       name: p.name,
       topic: t.topic,
-      text: t.text + ` (${p.name})`,
-      day: state.time.day,
-      intensity: rnd(30,98),
+      text: `${p.name}: ${t.text}`,
+      day: state.time.day || 1,
+      intensity: rnd(40,98),
       emotion: dominantEmotion(p.emotions),
       status: "در انتظار"
     };
     state.prayers.unshift(prayer);
-    p.memories.push({day:state.time.day, text:`دعا کرد: ${t.topic}`});
-    this.log(state, "دعا", `${p.name} برای ${t.topic} دعا کرد.`, [p.id]);
+    p.memories.push({day:state.time.day||1, text:`به عرش پناه برد و برای ${t.topic} دعا کرد.`});
+    this.log(state, "دعا", `${p.name} برای ${t.topic} دست به دعا برداشت.`, [p.id]);
+    return prayer;
+  },
+
+  seedPrayers(state, n=6) {
+    if (!state.prayers) state.prayers = [];
+    const living = state.people.filter(p=>p.alive);
+    living.slice(0, n).forEach(p => this.createPrayer(state, p));
+  },
+
+  maybePray(state) {
+    this.createPrayer(state);
   },
 
   randomEvent(state) {

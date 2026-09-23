@@ -70,7 +70,7 @@ const UI = {
       const sel = this.selected.has(p.id);
       return `<article class="card ${p.alive?"":"dead"} ${sel?"selected":""}" data-id="${p.id}">
         <div class="card-head">
-          <div class="avatar" style="--av:${emotionColor(em)}">${p.name[0]}</div>
+          <div class="avatar" style="--av:${emotionColor(em)}">${avatarSVG(p)}</div>
           <div>
             <h3>${p.name}</h3>
             <div class="meta">${p.id.slice(-6)} · ${p.age} سال · ${p.job}</div>
@@ -119,7 +119,7 @@ const UI = {
     const box = document.getElementById("prayer-chamber");
     box.innerHTML = this.state.prayers.slice(0,40).map(pr => `
       <article class="prayer">
-        <h4>${pr.name} — ${pr.topic}</h4>
+        <h4>${icon("prayer")} ${pr.name} — ${pr.topic}</h4>
         <p>${pr.text}</p>
         <div class="meta">روز ${pr.day} · شدت ${pr.intensity} · احساس ${EMOTION_FA[pr.emotion]||pr.emotion} · ${pr.status}</div>
         ${pr.status==="در انتظار"?`<div class="prayer-acts">
@@ -129,7 +129,7 @@ const UI = {
           <button data-pr="${pr.id}" data-act="deny">عدم اجابت</button>
           <button data-pr="${pr.id}" data-act="delay">به‌تعویق</button>
         </div>`:""}
-      </article>`).join("") || "<p>هنوز دعایی به عرش نرسیده.</p>";
+      </article>`).join("") || "<p class=\"mission\">هیچ دعایی در عرش نیست. زمان را از توقف خارج کن تا زمینیان سخن بگویند.</p>";
   },
 
   powers() {

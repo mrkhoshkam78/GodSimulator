@@ -73,7 +73,7 @@ function threeLineSpeech(p, world) {
   const em = dominantEmotion(p.emotions);
   const lines = [];
   if (!p.alive) {
-    return "دیگر جسمی نیست که سخن بگوید.\nخاطراتم در باد مانده است.\nاگر می‌توانی، نامم را فراموش نکن.";
+    return "جسمم آرام گرفته و دیگر صدایی ندارد.\nتنها نام و خاطره در جهان مانده است.\nاگر هنوز می‌شنوی، یادم را نگاه دار.";
   }
   const openers = {
     sadness: `خدایا، امروز دلم از ${p.worry} سنگین است.`,

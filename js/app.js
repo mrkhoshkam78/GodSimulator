@@ -13,7 +13,7 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.0.1",
+    version: "1.0.2",
     time: {day:1, year:1, speed:1, paused:false, accMs:0},
     world: {
       weather: "آسمان صاف",
@@ -27,7 +27,7 @@ function seedWorld() {
     },
     people,
     prayers: [],
-    events: [{id:uid("ev"), type:"پیدایش", text:"جهان به فرمان خالق چشم گشود.", day:1, year:1, ids:[]}],
+    events: [{id:uid("ev"), type:"پیدایش", text:"از سکوت، نخستین سپیده برخاست و جهان چشم گشود.", day:1, year:1, ids:[]}],
     checkpoint: null
   };
 }
@@ -42,9 +42,10 @@ const Game = {
     this.state = fromSave || seedWorld();
     if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
     this.state.time.accMs = this.state.time.accMs || 0;
-    this.state.version = "1.0.1";
+    this.state.version = "1.0.2";
     this.state.time.year = 1 + Math.floor((Math.max(1, this.state.time.day) - 1) / DAYS_PER_YEAR);
     (this.state.people||[]).forEach(p => Simulation.migratePerson(this.state, p));
+    if (!this.state.prayers || this.state.prayers.length === 0) Simulation.seedPrayers(this.state, 7);
     this.state.checkpoint = JSON.parse(JSON.stringify({...this.state, checkpoint:null}));
     UI.bind(this.state);
     this.loop();
@@ -61,6 +62,8 @@ const Game = {
         while (t.accMs >= REAL_MS_PER_DAY) {
           t.accMs -= REAL_MS_PER_DAY;
           Simulation.tick(this.state);
+          UI.prayers();
+          UI.stats();
         }
       }
       UI.time();
@@ -108,7 +111,7 @@ function toggleNav(){
   if (window.innerWidth <= 960) appEl.classList.toggle("nav-open");
   else appEl.classList.toggle("nav-collapsed");
 }
-document.getElementById("btn-menu").onclick = toggleNav;
+document.getElementById("btn-menu").onclick = () => { SFX.menu(); toggleNav(); };
 document.getElementById("btn-menu-close").onclick = closeNav;
 document.getElementById("nav-backdrop").onclick = closeNav;
 
@@ -116,8 +119,10 @@ document.getElementById("btn-begin").onclick = () => {
   document.getElementById("intro").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
   const saved = SaveSystem.load();
+  SFX.enabled = true;
+  SFX.begin();
   Game.start(saved);
-  toast(saved ? "جهان ذخیره‌شده از سر گرفته شد." : "جهان نو زاده شد.");
+  toast(saved ? "بازگشت به جهانی که نیمه‌کاره رها کرده بودی." : "جهان نو از دل تاریکی زاده شد.");
 };
 
 document.querySelectorAll(".nav-btn").forEach(btn => {
@@ -184,12 +189,14 @@ document.getElementById("prayer-chamber").addEventListener("click", e => {
   Simulation.log(Game.state, "اجابت دعا", `دعای ${pr.name} ${pr.status} شد.`, [pr.personId]);
   SaveSystem.persist(Game.state);
   UI.renderAll();
-  toast("حکم الهی ثبت شد.");
+  SFX.grant();
+  toast("حکم تو در جان دعاکننده نشست.");
 });
 
 document.getElementById("powers-menu").addEventListener("click", e => {
   const card = e.target.closest(".power-card");
   if (!card) return;
+  SFX.power();
   UI.powerModal(card.dataset.power);
 });
 
@@ -206,19 +213,14 @@ document.getElementById("btn-load").onclick = () => {
 document.getElementById("btn-new").onclick = () => {
   SaveSystem.clear();
   Game.state = seedWorld();
+  Simulation.seedPrayers(Game.state, 7);
   UI.bind(Game.state);
-  toast("جهانی دیگر آفریده شد.");
+  toast("جهانی دیگر از تاریکی سر برآورد.");
 };
 const audioEl = document.getElementById("chk-audio");
 if (audioEl) audioEl.onchange = e => {
+  SFX.enabled = e.target.checked;
   Game.audioOn = e.target.checked;
-  toast(Game.audioOn ? "صدا روشن است (زمینه کیهانی)." : "صدا خاموش شد.");
-  if (Game.audioOn && !Game.ctx) {
-    const ac = new (window.AudioContext||window.webkitAudioContext)();
-    Game.ctx = ac;
-    const o = ac.createOscillator();
-    const g = ac.createGain();
-    o.type="sine"; o.frequency.value=110;
-    g.gain.value=0.02; o.connect(g); g.connect(ac.destination); o.start();
-  }
+  toast(SFX.enabled ? "افکت صوتی روشن شد." : "افکت صوتی خاموش شد.");
+  if (SFX.enabled) SFX.begin();
 };
