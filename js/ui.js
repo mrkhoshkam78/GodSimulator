@@ -27,11 +27,13 @@ const UI = {
   stats() {
     const alive = this.state.people.filter(p=>p.alive).length;
     const pending = this.state.prayers.filter(p=>p.status==="در انتظار").length;
+    const w = this.state.world;
     document.getElementById("world-stats").innerHTML = `
-      <span>جمعیت زنده: <b>${alive}</b></span>
-      <span>کل انسان‌ها: <b>${this.state.people.length}</b></span>
-      <span>دعاها: <b>${pending}</b></span>
-      <span>تمدن: <b>${this.state.world.civilizations.length}</b></span>`;
+      <span class="stat-pill">جان <b>${alive}</b></span>
+      <span class="stat-pill faith">ایمان <b>${Math.round(w.faith||50)}</b></span>
+      <span class="stat-pill awe">هیبت <b>${Math.round(w.awe||40)}</b></span>
+      <span class="stat-pill power">نیرو <b>${Math.round(w.divinePower??100)}</b></span>
+      <span class="stat-pill">دعا <b>${pending}</b></span>`;
     document.getElementById("prayer-badge").textContent = pending;
   },
 
@@ -100,7 +102,7 @@ const UI = {
       <p>${p.gender} · تحصیلات ${p.education} · ${p.married?"متأهل":"مجرد"} · ${p.home}<br/>دارایی ${p.wealth} · درآمد ${p.income} · سلامت ${p.health}</p>
       <h4>شخصیت و ذهن</h4>
       <div class="bars">${bars(p.traits, TRAIT_FA)}</div>
-      <p>ترس‌ها: ${p.fears.join("، ")} · ارزش‌ها: ${p.values.join("، ")}<br/>باور: ${p.beliefs} · هدف: ${p.goals} · ضعف: ${p.weakness}</p>
+      <p>قوس: ${p.storyArc||"—"} · هدف بلند: ${p.longGoal||p.goals}<br/>ترس‌ها: ${p.fears.join("، ")} · ارزش‌ها: ${p.values.join("، ")}<br/>باور: ${p.beliefs} · هدف کوتاه: ${p.goals} · ضعف: ${p.weakness}${p.grudge?`<br/>کینه: ${p.grudge}`:""}</p>
       <h4>احساسات</h4>
       <div class="bars">${bars(p.emotions, EMOTION_FA)}</div>
       <h4>روابط</h4>
@@ -154,16 +156,21 @@ const UI = {
   missions() {
     const alive = this.state.people.filter(p=>p.alive).length;
     const answered = this.state.prayers.filter(p=>p.status!=="در انتظار").length;
+    const faith = Math.round(this.state.world.faith||50);
+    const dread = Math.round(this.state.world.dread||20);
     document.getElementById("missions").innerHTML = `
       <div class="mission"><h3>نگهبان جان‌ها</h3><p>جمعیت زنده را بالای ۱۵ نگاه دار. اکنون: ${alive}</p></div>
       <div class="mission"><h3>شنونده عرش</h3><p>به ۱۰ دعا پاسخ بده. انجام‌شده: ${answered}</p></div>
+      <div class="mission"><h3>ایمان جمعی</h3><p>ایمان جهان را بالای ۶۰ نگه دار. اکنون: ${faith}</p></div>
+      <div class="mission"><h3>مهار هراس</h3><p>هراس جمعی را زیر ۴۰ نگه دار. اکنون: ${dread}</p></div>
       <div class="mission"><h3>معمار تمدن</h3><p>یک تمدن بیافرین. تعداد: ${this.state.world.civilizations.length}</p></div>
       <div class="mission"><h3>زمان‌دان</h3><p>جهان را تا سال ۳ پیش ببر. سال فعلی: ${this.state.time.year}</p></div>`;
     const ages = this.state.people.filter(p=>p.alive).map(p=>p.age);
     const avg = ages.length ? Math.round(ages.reduce((a,b)=>a+b,0)/ages.length) : 0;
     const panel = document.getElementById("stats-panel");
     if (panel) panel.innerHTML = `
-      <div class="mission"><h3>تقویم</h3><p>روز ${this.state.time.day} از سال ${this.state.time.year} · هر سال ${DAYS_PER_YEAR} روز · هر روز ۳۰ ثانیه واقعی</p></div>
+      <div class="mission"><h3>تقویم</h3><p>روز ${this.state.time.day} از سال ${this.state.time.year} · هر سال ${DAYS_PER_YEAR} روز · هر روز ~۱۲ ثانیه واقعی</p></div>
+      <div class="mission"><h3>حال جهان</h3><p>ایمان ${faith} · هیبت ${Math.round(this.state.world.awe||40)} · هراس ${dread} · نیروی الهی ${Math.round(this.state.world.divinePower??100)}</p></div>
       <div class="mission"><h3>جمعیت</h3><p>زنده ${alive} از ${this.state.people.length} · میانگین سن ${avg} · دعاهای باز ${this.state.prayers.filter(p=>p.status==="در انتظار").length}</p></div>
       <div class="mission"><h3>اقلیم و قانون</h3><p>${this.state.world.weather} · ${this.state.world.law}</p></div>`;
   },
@@ -193,21 +200,45 @@ const UI = {
     return `<div class="form-row"><label>${f.label}</label><input id="pw-${f.id}" type="text" placeholder="${f.placeholder||""}"></div>`;
   },
 
+  personContextHtml(p) {
+    if (!p) return "";
+    const em = dominantEmotion(p.emotions);
+    return `<div class="person-context">
+      <div class="pc-av">${typeof avatarSVG==="function"?avatarSVG(p):""}</div>
+      <div>
+        <strong>${p.name}</strong>
+        <div class="meta">${p.age} سال · ${p.job} · ${p.storyArc||"—"} · ${EMOTION_FA[em]}</div>
+        <div class="meta">ایمان ${p.faith} · سلامت ${p.health} · هدف: ${p.longGoal||p.goals}</div>
+        <div class="meta">نگرانی: ${p.worry}${p.grudge?` · کینه از ${p.grudge}`:""}</div>
+      </div>
+    </div>`;
+  },
+
   powerModal(powerId) {
     const meta = POWER_CATS.flatMap(c=>c.powers).find(p=>p.id===powerId);
     const cfg = POWER_UI[powerId] || {scope:["one"], target:true, fields:[]};
+    const cost = (DIVINE_COST && DIVINE_COST[powerId]) || 10;
     const pool = this.state.people.filter(p => cfg.target==="dead" ? !p.alive : true);
-    const people = pool.map(p=>`<option value="${p.id}">${p.name} · ${p.gender} · ${p.alive?"زنده":"آرام‌گرفته"}</option>`).join("");
+    const people = pool.map(p=>`<option value="${p.id}">${p.name} · ${p.gender} · ${p.alive?"زنده":"آرام‌گرفته"} · ایمان ${p.faith}</option>`).join("");
     const scopeLabels = {one:"یک انسان", selected:"برگزیدگان", world:"تمام جهان"};
     const scopes = (cfg.scope||["one"]).map(s=>`<option value="${s}">${scopeLabels[s]}</option>`).join("");
     const showTarget = cfg.target && (cfg.scope||[]).some(s=>s!=="world");
+    const first = pool[0];
     this.modal(`
       <h2>${icon("power")} ${meta.name}</h2>
       <p class="meta">${meta.desc}</p>
+      <div class="cost-chip">هزینه نیروی الهی: <b>${cost}</b> · موجود: <b>${Math.round(this.state.world.divinePower??100)}</b></div>
+      <div id="pw-context">${showTarget && first ? this.personContextHtml(first) : ""}</div>
       ${cfg.scope && cfg.scope.length>1 ? `<div class="form-row"><label>دامنه اثر</label><select id="pw-scope">${scopes}</select></div>` : `<input type="hidden" id="pw-scope" value="${cfg.scope[0]}">`}
       ${showTarget ? `<div class="form-row"><label>هدف</label><select id="pw-id">${people || "<option value=''>کسی در دسترس نیست</option>"}</select></div>` : `<input type="hidden" id="pw-id" value="">`}
       ${(cfg.fields||[]).map(f=>this.fieldHtml(f)).join("")}
       <button class="btn-divine" id="pw-run">اجرای ${meta.name}</button>`);
+    const idSel = document.getElementById("pw-id");
+    if (idSel) idSel.onchange = () => {
+      const p = this.state.people.find(x => x.id === idSel.value);
+      const box = document.getElementById("pw-context");
+      if (box) box.innerHTML = this.personContextHtml(p);
+    };
     (cfg.fields||[]).forEach(f => {
       if (f.type==="range") {
         const el = document.getElementById("pw-"+f.id);

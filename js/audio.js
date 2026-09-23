@@ -1,7 +1,7 @@
 const SFX = {
   ctx: null,
   enabled: true,
-  master: 0.7,
+  master: 0.72,
   ensure() {
     if (!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)();
     if (this.ctx.state === "suspended") this.ctx.resume();
@@ -29,12 +29,12 @@ const SFX = {
   chord(freqs, dur=0.32) {
     freqs.forEach((f,i)=> setTimeout(()=>this.env(f, dur, "sine", 0.028), i*55));
   },
-  begin() { this.chord([196,247,311,392,523], 0.5); },
-  prayer() { this.chord([262,330,392], 0.38); },
-  grant() { this.chord([392,494,587,784], 0.4); },
-  power() { this.env(196, 0.18, "triangle", 0.05); this.env(392, 0.28, "sine", 0.03, 80); },
-  menu() { this.env(220, 0.07, "sine", 0.02); },
-  death() { this.env(98, 0.7, "sine", 0.035, -40); },
+  begin() { this.chord([196,247,311,392,523], 0.55); setTimeout(()=>this.env(784,.25,"sine",0.02),200); },
+  prayer() { this.chord([262,330,392,440], 0.42); },
+  grant() { this.chord([392,494,587,784], 0.45); setTimeout(()=>this.env(880,.2,"sine",0.018),120); },
+  power() { this.env(196, 0.2, "triangle", 0.055); this.env(392, 0.32, "sine", 0.032, 90); },
+  menu() { this.env(240, 0.08, "sine", 0.022); this.env(320, 0.06, "sine", 0.012); },
+  death() { this.env(98, 0.75, "sine", 0.038, -45); this.env(73, 0.9, "triangle", 0.02, -20); },
   forPower(id) {
     const map = {
       heal:()=>this.chord([523,659,784],.4),

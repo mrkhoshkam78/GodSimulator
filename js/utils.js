@@ -1,5 +1,5 @@
 const DAYS_PER_YEAR = 360;
-const REAL_MS_PER_DAY = 30000;
+const REAL_MS_PER_DAY = 12000;
 
 const uid = (p="id") => p + "_" + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
 const pick = a => a[Math.floor(Math.random()*a.length)];
@@ -54,6 +54,11 @@ function makePerson(overrides={}) {
     values: [pick(VALUES), pick(VALUES)],
     beliefs: chance(.5) ? "جهان معنا دارد" : "سرنوشت در دست خودم است",
     goals: pick(["خانه‌ای امن","نامی ماندگار","آرامش دل","دانش پنهان","فرزندی شایسته"]),
+    longGoal: pick(["بنیان‌نهادن خاندانی پایدار","یافتن حقیقت پنهان جهان","رهانیدن زادگاه از رنج","نامی که پس از مرگ بماند","صلح با کسی که از او رنجیده"]),
+    storyArc: pick(["جست‌وجوگر","رنج‌دیده","بلندپرواز","نگهبان","دل‌شکسته","تازه‌وارد"]),
+    grudge: null,
+    lastDivineDay: 0,
+    divineDebt: 0,
     weakness: pick(["شتابزدگی","اعتماد بیش از حد","کینه","تردید"]),
     activity: pick(["کار می‌کند","استراحت","گفتگو","عبادت","سفر کوتاه"]),
     worry: pick(["فردا","نان","تنهایی","بیماری"]),
@@ -67,6 +72,16 @@ function makePerson(overrides={}) {
     luck: rnd(20,60),
     ...overrides
   };
+}
+
+function weightedChance(base, traitBoost) {
+  return chance(clamp(base + (traitBoost || 0) / 200, 0, 0.95));
+}
+
+function personSummary(p) {
+  if (!p) return "";
+  const em = dominantEmotion(p.emotions);
+  return `${p.name} · ${p.age}س · ${p.job} · ${EMOTION_FA[em]} · ایمان ${p.faith} · هدف: ${p.longGoal || p.goals}`;
 }
 
 function threeLineSpeech(p, world) {
@@ -118,6 +133,24 @@ function toast(msg) {
 
 function flashFX() {
   const fx = document.getElementById("fx-overlay");
+  if (!fx) return;
   fx.classList.add("on");
-  setTimeout(() => fx.classList.remove("on"), 500);
+  setTimeout(() => fx.classList.remove("on"), 600);
+}
+
+function showDivineBanner(powerId, msg) {
+  let el = document.getElementById("divine-banner");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "divine-banner";
+    el.className = "divine-banner";
+    document.body.appendChild(el);
+  }
+  const meta = (typeof POWER_CATS !== "undefined")
+    ? POWER_CATS.flatMap(c => c.powers).find(p => p.id === powerId)
+    : null;
+  el.innerHTML = `<strong>${meta ? meta.name : "قدرت الهی"}</strong><span>${(msg || "").split("\n")[0]}</span>`;
+  el.classList.add("show");
+  clearTimeout(showDivineBanner._t);
+  showDivineBanner._t = setTimeout(() => el.classList.remove("show"), 2800);
 }

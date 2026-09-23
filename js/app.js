@@ -13,8 +13,9 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.0.3",
+    version: "1.0.5",
     time: {day:1, year:1, speed:1, paused:false, accMs:0},
+    settings: { theme: "night", sfx: true },
     world: {
       weather: "آسمان صاف",
       weatherCycle: 0,
@@ -23,7 +24,12 @@ function seedWorld() {
       law: "قانون کهن احترام به جان",
       society: "جوامع پراکنده",
       tech: 2,
-      civilizations: []
+      civilizations: [],
+      faith: 55,
+      awe: 35,
+      dread: 18,
+      divinePower: 100,
+      silenceDays: 0
     },
     people,
     prayers: [],
@@ -42,11 +48,19 @@ const Game = {
     this.state = fromSave || seedWorld();
     if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
     this.state.time.accMs = this.state.time.accMs || 0;
-    this.state.version = "1.0.3";
+    this.state.version = "1.0.5";
+    this.state.settings = this.state.settings || { theme: "night", sfx: true };
+    this.state.world.faith = this.state.world.faith ?? 55;
+    this.state.world.awe = this.state.world.awe ?? 35;
+    this.state.world.dread = this.state.world.dread ?? 18;
+    this.state.world.divinePower = this.state.world.divinePower ?? 100;
+    this.state.world.silenceDays = this.state.world.silenceDays ?? 0;
     this.state.time.year = 1 + Math.floor((Math.max(1, this.state.time.day) - 1) / DAYS_PER_YEAR);
     (this.state.people||[]).forEach(p => Simulation.migratePerson(this.state, p));
     if (!this.state.prayers || this.state.prayers.length === 0) Simulation.seedPrayers(this.state, 7);
     this.state.checkpoint = JSON.parse(JSON.stringify({...this.state, checkpoint:null}));
+    applyTheme(this.state.settings.theme || "night");
+    SFX.enabled = this.state.settings.sfx !== false;
     UI.bind(this.state);
     this.loop();
     this.stars();
@@ -78,19 +92,29 @@ const Game = {
     const ctx = c.getContext("2d");
     const fit = () => { c.width = innerWidth; c.height = innerHeight; };
     fit(); addEventListener("resize", fit);
-    const dots = Array.from({length:80}, () => ({x:Math.random(), y:Math.random(), r:Math.random()*1.6+.2, s:Math.random()*0.0008+0.0002}));
+    const dots = Array.from({length:90}, () => ({x:Math.random(), y:Math.random(), r:Math.random()*1.8+.2, s:Math.random()*0.0009+0.0002}));
     const draw = () => {
       ctx.clearRect(0,0,c.width,c.height);
-      ctx.fillStyle = "rgba(232,195,106,.7)";
+      const day = document.body.classList.contains("theme-day");
+      ctx.fillStyle = day ? "rgba(255,200,80,.55)" : "rgba(232,195,106,.75)";
       dots.forEach(d => {
         d.y -= d.s; if (d.y<0) d.y=1;
-        ctx.beginPath(); ctx.arc(d.x*c.width, d.y*c.height, d.r, 0, 7); ctx.fill();
+        ctx.globalAlpha = day ? 0.35 + d.r * 0.15 : 0.55 + d.r * 0.2;
+        ctx.beginPath(); ctx.arc(d.x*c.width, d.y*c.height, d.r * (day?1.4:1), 0, 7); ctx.fill();
       });
+      ctx.globalAlpha = 1;
       requestAnimationFrame(draw);
     };
     draw();
   }
 };
+
+function applyTheme(theme) {
+  document.body.classList.toggle("theme-day", theme === "day");
+  document.body.classList.toggle("theme-night", theme !== "day");
+  const sun = document.getElementById("sun-orb");
+  if (sun) sun.classList.toggle("hidden", theme !== "day");
+}
 
 (function mountIcons(){
   document.getElementById("btn-menu").innerHTML = icon("menu");
@@ -208,12 +232,18 @@ document.getElementById("btn-save").onclick = () => { SaveSystem.persist(Game.st
 document.getElementById("btn-load").onclick = () => {
   const s = SaveSystem.load();
   if (!s) return toast("ذخیره‌ای نیست.");
-  Game.state = s; UI.bind(s); toast("بارگذاری شد.");
+  Game.state = s;
+  Game.state.settings = Game.state.settings || { theme: "night", sfx: true };
+  applyTheme(Game.state.settings.theme || "night");
+  SFX.enabled = Game.state.settings.sfx !== false;
+  UI.bind(s);
+  toast("بارگذاری شد.");
 };
 document.getElementById("btn-new").onclick = () => {
   SaveSystem.clear();
   Game.state = seedWorld();
   Simulation.seedPrayers(Game.state, 7);
+  applyTheme("night");
   UI.bind(Game.state);
   toast("جهانی دیگر از تاریکی سر برآورد.");
 };
@@ -221,6 +251,25 @@ const audioEl = document.getElementById("chk-audio");
 if (audioEl) audioEl.onchange = e => {
   SFX.enabled = e.target.checked;
   Game.audioOn = e.target.checked;
+  if (Game.state) {
+    Game.state.settings = Game.state.settings || {};
+    Game.state.settings.sfx = e.target.checked;
+    SaveSystem.persist(Game.state);
+  }
   toast(SFX.enabled ? "افکت صوتی روشن شد." : "افکت صوتی خاموش شد.");
   if (SFX.enabled) SFX.begin();
 };
+document.querySelectorAll(".theme-btn").forEach(btn => {
+  btn.onclick = () => {
+    const theme = btn.dataset.theme;
+    applyTheme(theme);
+    if (Game.state) {
+      Game.state.settings = Game.state.settings || {};
+      Game.state.settings.theme = theme;
+      SaveSystem.persist(Game.state);
+    }
+    document.querySelectorAll(".theme-btn").forEach(b => b.classList.toggle("active", b.dataset.theme === theme));
+    SFX.menu();
+    toast(theme === "day" ? "سپیده بر جهان تابید." : "شب کیهانی بازگشت.");
+  };
+});
