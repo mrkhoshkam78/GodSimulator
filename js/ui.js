@@ -1,0 +1,203 @@
+const UI = {
+  state: null,
+  selectMode: false,
+  selected: new Set(),
+  openId: null,
+
+  bind(state) { this.state = state; this.renderAll(); },
+
+  renderAll() {
+    this.stats();
+    this.grid();
+    this.prayers();
+    this.powers();
+    this.events();
+    this.missions();
+    this.time();
+  },
+
+  time() {
+    const t = this.state.time;
+    document.getElementById("time-display").textContent = `روز ${t.day} — سال ${t.year} — ${this.state.world.weather}`;
+    document.querySelectorAll(".time-controls button[data-speed]").forEach(b => {
+      b.classList.toggle("active", Number(b.dataset.speed) === (t.paused?0:t.speed));
+    });
+  },
+
+  stats() {
+    const alive = this.state.people.filter(p=>p.alive).length;
+    const pending = this.state.prayers.filter(p=>p.status==="در انتظار").length;
+    document.getElementById("world-stats").innerHTML = `
+      <span>جمعیت زنده: <b>${alive}</b></span>
+      <span>کل انسان‌ها: <b>${this.state.people.length}</b></span>
+      <span>دعاها: <b>${pending}</b></span>
+      <span>تمدن: <b>${this.state.world.civilizations.length}</b></span>`;
+    document.getElementById("prayer-badge").textContent = pending;
+  },
+
+  filters() {
+    const q = document.getElementById("search").value.trim();
+    const life = document.getElementById("filter-life").value;
+    const em = document.getElementById("filter-emotion").value;
+    const job = document.getElementById("filter-job").value;
+    const sort = document.getElementById("sort-by").value;
+    let list = [...this.state.people];
+    if (q) list = list.filter(p => p.name.includes(q) || p.id.includes(q));
+    if (life==="alive") list = list.filter(p=>p.alive);
+    if (life==="dead") list = list.filter(p=>!p.alive);
+    if (em!=="all") list = list.filter(p => dominantEmotion(p.emotions)===em);
+    if (job!=="all") list = list.filter(p => p.job===job);
+    list.sort((a,b) => {
+      if (sort==="age") return a.age-b.age;
+      if (sort==="faith") return b.faith-a.faith;
+      if (sort==="wealth") return b.wealth-a.wealth;
+      return a.name.localeCompare(b.name,"fa");
+    });
+    return list;
+  },
+
+  grid() {
+    const el = document.getElementById("people-grid");
+    const jobs = [...new Set(this.state.people.map(p=>p.job))];
+    const fj = document.getElementById("filter-job");
+    if (fj.options.length<=1) jobs.forEach(j => { const o=document.createElement("option"); o.value=j; o.textContent=j; fj.appendChild(o); });
+    const fe = document.getElementById("filter-emotion");
+    if (fe.options.length<=1) EMOTIONS.forEach(k => { const o=document.createElement("option"); o.value=k; o.textContent=EMOTION_FA[k]; fe.appendChild(o); });
+
+    el.innerHTML = this.filters().map(p => {
+      const em = dominantEmotion(p.emotions);
+      const open = this.openId === p.id;
+      const sel = this.selected.has(p.id);
+      return `<article class="card ${p.alive?"":"dead"} ${sel?"selected":""}" data-id="${p.id}">
+        <div class="card-head">
+          <div class="avatar" style="--av:${emotionColor(em)}">${p.name[0]}</div>
+          <div>
+            <h3>${p.name}</h3>
+            <div class="meta">${p.id.slice(-6)} · ${p.age} سال · ${p.job}</div>
+            <span class="emotion-chip" style="color:${emotionColor(em)}">● ${EMOTION_FA[em]} · ${p.alive?"زنده":"فوت‌شده"}</span>
+          </div>
+        </div>
+        <div class="card-body">${p.activity} — ${p.home}. ایمان ${p.faith}، ثروت ${p.wealth}.</div>
+        <div class="card-actions">
+          <button class="toggle">${open?"بستن پرونده":"گشودن پرونده"}</button>
+          ${this.selectMode?`<button class="pick">${sel?"حذف از انتخاب":"انتخاب"}</button>`:""}
+        </div>
+        ${open?this.dossier(p):""}
+      </article>`;
+    }).join("");
+  },
+
+  dossier(p) {
+    const speech = threeLineSpeech(p, this.state);
+    p.speeches.push({day:this.state.time.day, text:speech});
+    if (p.speeches.length>12) p.speeches.shift();
+    const bars = (obj, dict) => Object.keys(dict).map(k => {
+      const v = obj[k]||0;
+      return `<div class="bar"><span>${dict[k]}</span><i><span style="width:${v}%"></span></i><span>${v}</span></div>`;
+    }).join("");
+    return `<div class="dossier">
+      <h4>مشخصات</h4>
+      <p>${p.gender} · تحصیلات ${p.education} · ${p.married?"متأهل":"مجرد"} · ${p.home}<br/>دارایی ${p.wealth} · درآمد ${p.income} · سلامت ${p.health}</p>
+      <h4>شخصیت و ذهن</h4>
+      <div class="bars">${bars(p.traits, TRAIT_FA)}</div>
+      <p>ترس‌ها: ${p.fears.join("، ")} · ارزش‌ها: ${p.values.join("، ")}<br/>باور: ${p.beliefs} · هدف: ${p.goals} · ضعف: ${p.weakness}</p>
+      <h4>احساسات</h4>
+      <div class="bars">${bars(p.emotions, EMOTION_FA)}</div>
+      <h4>روابط</h4>
+      <p>${p.relations.length? p.relations.map(r=>`${r.type} ${r.name} (اعتماد ${r.trust||0})`).join("، "):"هنوز پیوندی ثبت نشده."}</p>
+      <h4>خاطرات</h4>
+      <p>${p.memories.slice(-5).map(m=>`روز ${m.day}: ${m.text}`).join("<br/>")}</p>
+      <h4>وضعیت فعلی</h4>
+      <p>انرژی ${p.energy} · گرسنگی ${p.hunger} · تشنگی ${p.thirst}<br/>نگرانی: ${p.worry} · برنامه: ${p.nextPlan}<br/>افکار: ${p.thoughts}</p>
+      <div class="speech">${speech.replace(/\n/g,"<br/>")}</div>
+      <h4>تاریخچه مکالمه</h4>
+      <p>${p.speeches.slice(-4).map(s=>`روز ${s.day}: ${s.text.split("\n")[0]}`).join("<br/>")}</p>
+    </div>`;
+  },
+
+  prayers() {
+    const box = document.getElementById("prayer-chamber");
+    box.innerHTML = this.state.prayers.slice(0,40).map(pr => `
+      <article class="prayer">
+        <h4>${pr.name} — ${pr.topic}</h4>
+        <p>${pr.text}</p>
+        <div class="meta">روز ${pr.day} · شدت ${pr.intensity} · احساس ${EMOTION_FA[pr.emotion]||pr.emotion} · ${pr.status}</div>
+        ${pr.status==="در انتظار"?`<div class="prayer-acts">
+          <button data-pr="${pr.id}" data-act="full">اجابت کامل</button>
+          <button data-pr="${pr.id}" data-act="partial">اجابت جزئی</button>
+          <button data-pr="${pr.id}" data-act="sign">نشانه / الهام</button>
+          <button data-pr="${pr.id}" data-act="deny">عدم اجابت</button>
+          <button data-pr="${pr.id}" data-act="delay">به‌تعویق</button>
+        </div>`:""}
+      </article>`).join("") || "<p>هنوز دعایی به عرش نرسیده.</p>";
+  },
+
+  powers() {
+    document.getElementById("powers-menu").innerHTML = POWER_CATS.map(cat => `
+      <div class="power-cat"><h3>${cat.title}</h3>
+        <div class="power-grid">${cat.powers.map(p => `
+          <div class="power-card" data-power="${p.id}"><strong>${p.name}</strong><small>${p.desc}</small></div>`).join("")}
+        </div>
+      </div>`).join("");
+  },
+
+  events() {
+    const f = document.getElementById("event-filter");
+    const types = [...new Set(this.state.events.map(e=>e.type))];
+    if (f.options.length<=1) types.forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=t;f.appendChild(o);});
+    const cur = f.value;
+    const list = this.state.events.filter(e => cur==="all"||e.type===cur);
+    document.getElementById("event-log").innerHTML = list.slice(0,80).map(e => `
+      <div class="event"><strong>${e.type}</strong> · روز ${e.day}<div>${e.text}</div></div>`).join("") || "<p>تاریخی هنوز نوشته نشده.</p>";
+  },
+
+  missions() {
+    const alive = this.state.people.filter(p=>p.alive).length;
+    const answered = this.state.prayers.filter(p=>p.status!=="در انتظار").length;
+    document.getElementById("missions").innerHTML = `
+      <div class="mission"><h3>نگهبان جان‌ها</h3><p>جمعیت زنده را بالای ۱۵ نگاه دار. اکنون: ${alive}</p></div>
+      <div class="mission"><h3>شنونده عرش</h3><p>به ۱۰ دعا پاسخ بده. انجام‌شده: ${answered}</p></div>
+      <div class="mission"><h3>معمار تمدن</h3><p>یک تمدن بیافرین. تعداد: ${this.state.world.civilizations.length}</p></div>
+      <div class="mission"><h3>زمان‌دان</h3><p>جهان را تا سال ۳ پیش ببر. سال فعلی: ${this.state.time.year}</p></div>`;
+  },
+
+  modal(html) {
+    document.getElementById("modal-panel").innerHTML = html + `<p style="margin-top:1rem"><button class="mini" id="modal-close">بستن</button></p>`;
+    document.getElementById("modal").classList.remove("hidden");
+  },
+  closeModal() { document.getElementById("modal").classList.add("hidden"); },
+
+  powerModal(powerId) {
+    const meta = POWER_CATS.flatMap(c=>c.powers).find(p=>p.id===powerId);
+    const people = this.state.people.map(p=>`<option value="${p.id}">${p.name} (${p.alive?"زنده":"فوت"})</option>`).join("");
+    this.modal(`
+      <h2>${meta.name}</h2>
+      <p>${meta.desc}</p>
+      <div class="form-row"><label>دامنه</label>
+        <select id="pw-scope"><option value="one">یک فرد</option><option value="selected">انتخاب‌شده‌ها</option><option value="world">کل جهان</option></select>
+      </div>
+      <div class="form-row"><label>هدف</label><select id="pw-id">${people}</select></div>
+      <div class="form-row"><label>کلید / حالت</label><input id="pw-key" placeholder="مثلا hope یا courage یا pause" /></div>
+      <div class="form-row"><label>مقدار</label><input id="pw-val" type="number" value="70" /></div>
+      <div class="form-row"><label>متن / فرمان</label><textarea id="pw-text" rows="3"></textarea></div>
+      <button class="btn-divine" id="pw-run">اجرای قدرت</button>`);
+    document.getElementById("pw-run").onclick = () => {
+      const scopeSel = document.getElementById("pw-scope").value;
+      const payload = {
+        scope: scopeSel==="world"?"world":"one",
+        id: document.getElementById("pw-id").value,
+        ids: scopeSel==="selected"?[...this.selected]:undefined,
+        key: document.getElementById("pw-key").value,
+        value: document.getElementById("pw-val").value,
+        text: document.getElementById("pw-text").value,
+        mode: document.getElementById("pw-key").value,
+        kind: document.getElementById("pw-text").value
+      };
+      const res = Powers.apply(this.state, powerId, payload);
+      toast(res.msg.split("\n")[0]);
+      if (res.msg.includes("\n")) this.modal(`<h2>نتیجه</h2><p style="white-space:pre-wrap">${res.msg}</p>`);
+      else this.closeModal();
+      this.renderAll();
+    };
+  }
+};
