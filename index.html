@@ -23,26 +23,28 @@
 
   <div id="app" class="app hidden">
     <header class="topbar">
-      <div class="topbar-left">
-        <button id="btn-menu" class="icon-btn" type="button" aria-label="منو"></button>
-        <div class="brand">
-          <span class="brand-mark" id="brand-ico"></span>
-          <div class="brand-text">
-            <strong>GOD SIMULATOR</strong>
-            <small>THE WORLD IS YOURS</small>
+      <div class="topbar-main">
+        <div class="topbar-left">
+          <button id="btn-menu" class="icon-btn" type="button" aria-label="منو"></button>
+          <div class="brand">
+            <span class="brand-mark" id="brand-ico"></span>
+            <div class="brand-text">
+              <strong>GOD SIMULATOR</strong>
+              <small>THE WORLD IS YOURS</small>
+            </div>
           </div>
+        </div>
+        <div class="topbar-right">
+          <div class="time-controls" role="group" aria-label="کنترل زمان">
+            <button data-speed="0" title="توقف" aria-label="توقف"></button>
+            <button data-speed="1" class="active" title="عادی" aria-label="عادی"></button>
+            <button data-speed="3" title="سریع" aria-label="سریع"></button>
+            <button data-speed="8" title="بسیار سریع" aria-label="بسیار سریع"></button>
+          </div>
+          <span id="time-display">روز ۱ — سال ۱</span>
         </div>
       </div>
       <div class="world-stats" id="world-stats"></div>
-      <div class="topbar-right">
-        <div class="time-controls">
-          <button data-speed="0" title="توقف" aria-label="توقف"></button>
-          <button data-speed="1" class="active" title="عادی" aria-label="عادی"></button>
-          <button data-speed="3" title="سریع" aria-label="سریع"></button>
-          <button data-speed="8" title="بسیار سریع" aria-label="بسیار سریع"></button>
-        </div>
-        <span id="time-display">روز ۱ — سال ۱</span>
-      </div>
     </header>
 
     <div id="nav-backdrop" class="nav-backdrop"></div>
@@ -116,20 +118,21 @@
         <div class="settings-grid">
           <div class="mission settings-card">
             <h3>صدا</h3>
-            <label class="audio-toggle"><input type="checkbox" id="chk-audio" checked /> افکت‌های صوتی (ورود، دعا، قدرت، مرگ)</label>
-            <p class="meta">می‌توانی هر زمان خاموش یا روشن کنی؛ تنظیم ذخیره می‌شود.</p>
+            <label class="audio-toggle"><input type="checkbox" id="chk-audio" checked /> افکت‌ها (کلیک، دعا، قدرت، مرگ)</label>
+            <label class="audio-toggle"><input type="checkbox" id="chk-bgm" checked /> موسیقی پس‌زمینهٔ حماسی</label>
+            <p class="meta">تنظیم‌ها با ذخیرهٔ بازی حفظ می‌شوند.</p>
           </div>
           <div class="mission settings-card">
             <h3>تم جهان</h3>
             <div class="theme-switch">
-              <button type="button" class="theme-btn" data-theme="night" id="btn-theme-night">شب کیهانی</button>
-              <button type="button" class="theme-btn" data-theme="day" id="btn-theme-day">روز زرین</button>
+              <button type="button" class="theme-btn active" data-theme="night" id="btn-theme-night">شب کیهانی</button>
+              <button type="button" class="theme-btn" data-theme="day" id="btn-theme-day">سپیدهٔ سینمایی</button>
             </div>
-            <p class="meta">شب: فضای فعلی. روز: نور خورشید، پالت روشن‌تر و انیمیشن سپیده.</p>
+            <p class="meta">شب: فضای تیرهٔ فعلی. سپیده: تم سینمایی با کنتراست بالا و انیمیشن شفق.</p>
           </div>
           <div class="mission settings-card">
             <h3>زمان</h3>
-            <p class="meta">هر روز جهان ≈ ۱۲ ثانیه واقعی در سرعت عادی. توقف زمان سن، دعا و رویداد را متوقف می‌کند. نیروی الهی هر چند روز بازمی‌گردد.</p>
+            <p class="meta">هر روز جهان حدود ۱۲ ثانیه واقعی در سرعت عادی است. با توقف زمان، سن و دعا جلو نمی‌رود.</p>
           </div>
         </div>
       </section>
