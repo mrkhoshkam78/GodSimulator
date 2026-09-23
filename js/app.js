@@ -13,7 +13,7 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.0.6",
+    version: "1.1.0",
     time: {day:1, year:1, speed:1, paused:false, accMs:0},
     settings: { theme: "night", sfx: true },
     world: {
@@ -48,7 +48,7 @@ const Game = {
     this.state = fromSave || seedWorld();
     if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
     this.state.time.accMs = this.state.time.accMs || 0;
-    this.state.version = "1.0.6";
+    this.state.version = "1.1.0";
     this.state.settings = this.state.settings || { theme: "night", sfx: true };
     this.state.world.faith = this.state.world.faith ?? 55;
     this.state.world.awe = this.state.world.awe ?? 35;
