@@ -22,8 +22,9 @@
 
   <div id="app" class="app hidden">
     <header class="topbar">
+      <button id="btn-menu" class="icon-btn" type="button" aria-label="منو"></button>
       <div class="brand">
-        <span class="brand-mark">◈</span>
+        <span class="brand-mark" id="brand-ico"></span>
         <div>
           <strong>GOD SIMULATOR</strong>
           <small>THE WORLD IS YOURS</small>
@@ -31,27 +32,33 @@
       </div>
       <div class="world-stats" id="world-stats"></div>
       <div class="time-controls">
-        <button data-speed="0" title="توقف">❚❚</button>
-        <button data-speed="1" class="active" title="عادی">▶</button>
-        <button data-speed="3" title="سریع">▶▶</button>
-        <button data-speed="8" title="بسیار سریع">▶▶▶</button>
+        <button data-speed="0" title="توقف" aria-label="توقف"></button>
+        <button data-speed="1" class="active" title="عادی" aria-label="عادی"></button>
+        <button data-speed="3" title="سریع" aria-label="سریع"></button>
+        <button data-speed="8" title="بسیار سریع" aria-label="بسیار سریع"></button>
         <span id="time-display">روز ۱ — سال ۱</span>
       </div>
     </header>
 
-    <aside class="sidebar">
+    <div id="nav-backdrop" class="nav-backdrop"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <span>منوی اصلی</span>
+        <button id="btn-menu-close" class="icon-btn" type="button" aria-label="بستن منو"></button>
+      </div>
       <nav>
-        <button class="nav-btn active" data-view="world">جهان</button>
-        <button class="nav-btn" data-view="prayers">اتاق دعاها <span id="prayer-badge" class="badge">0</span></button>
-        <button class="nav-btn" data-view="powers">قدرت‌های الهی</button>
-        <button class="nav-btn" data-view="events">تاریخچه جهان</button>
-        <button class="nav-btn" data-view="missions">مأموریت‌ها</button>
+        <button class="nav-btn active" data-view="world"><span data-ico="world"></span> جهان</button>
+        <button class="nav-btn" data-view="prayers"><span data-ico="prayer"></span> اتاق دعاها <span id="prayer-badge" class="badge">0</span></button>
+        <button class="nav-btn" data-view="powers"><span data-ico="power"></span> قدرت‌های الهی</button>
+        <button class="nav-btn" data-view="events"><span data-ico="events"></span> رویدادها</button>
+        <button class="nav-btn" data-view="stats"><span data-ico="stats"></span> آمار جهان</button>
+        <button class="nav-btn" data-view="settings"><span data-ico="settings"></span> تنظیمات</button>
+        <button class="nav-btn" data-view="missions"><span data-ico="spark"></span> مأموریت‌ها</button>
       </nav>
       <div class="sidebar-actions">
-        <button id="btn-save">ذخیره</button>
-        <button id="btn-load">بارگذاری</button>
-        <button id="btn-new">جهان نو</button>
-        <label class="audio-toggle"><input type="checkbox" id="chk-audio" /> صدا</label>
+        <button id="btn-save"><span data-ico="save"></span> ذخیره</button>
+        <button id="btn-load"><span data-ico="load"></span> بارگذاری</button>
+        <button id="btn-new"><span data-ico="spark"></span> جهان نو</button>
       </div>
     </aside>
 
@@ -95,6 +102,17 @@
         <h2 class="view-title">مأموریت‌های اختیاری</h2>
         <div id="missions" class="missions"></div>
       </section>
+      <section id="view-stats" class="view hidden">
+        <h2 class="view-title">آمار جهان</h2>
+        <div id="stats-panel" class="missions"></div>
+      </section>
+      <section id="view-settings" class="view hidden">
+        <h2 class="view-title">تنظیمات</h2>
+        <div class="mission">
+          <label class="audio-toggle"><input type="checkbox" id="chk-audio" /> صدای زمینه</label>
+          <p class="meta">هر روز بازی = ۳۰ ثانیه واقعی در سرعت عادی. توقف زمان سن و رویدادها را نگه می‌دارد.</p>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -106,6 +124,7 @@
   <div id="fx-overlay" class="fx-overlay"></div>
 
   <script src="js/data.js"></script>
+  <script src="js/icons.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/save.js"></script>
   <script src="js/simulation.js"></script>
