@@ -178,10 +178,15 @@ document.querySelectorAll(".time-controls button[data-speed]").forEach(btn => {
   };
 });
 
-["search","filter-life","filter-emotion","filter-job","sort-by","event-filter"].forEach(id => {
-  document.getElementById(id).addEventListener("input", () => UI.renderAll());
-  document.getElementById(id).addEventListener("change", () => UI.renderAll());
+["search","filter-life","filter-emotion","filter-job","sort-by"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const refresh = () => UI.grid(true);
+  el.addEventListener("input", refresh);
+  el.addEventListener("change", refresh);
 });
+const eventFilter = document.getElementById("event-filter");
+if (eventFilter) eventFilter.addEventListener("change", () => UI.events());
 
 document.getElementById("btn-select-mode").onclick = () => {
   UI.selectMode = !UI.selectMode;
@@ -220,7 +225,8 @@ document.getElementById("prayer-chamber").addEventListener("click", e => {
   }
   Simulation.log(Game.state, "اجابت دعا", `دعای ${pr.name} ${pr.status} شد.`, [pr.personId]);
   SaveSystem.persist(Game.state);
-  UI.renderAll();
+  UI.stats();
+  UI.prayers();
   SFX.grant();
   toast("حکم تو در جان دعاکننده نشست.");
 });

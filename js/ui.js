@@ -19,13 +19,33 @@ const UI = {
   onSimTick() {
     this.stats();
     this.time();
-    const pending = this.state.prayers.filter(p => p.status === "در انتظار").length;
-    const badge = document.getElementById("prayer-badge");
-    if (badge) badge.textContent = pending;
-    if (this.activeView === "world") this.grid(true);
+    if (this.activeView === "world") this.softPatchCards();
     else if (this.activeView === "prayers") this.prayers();
     else if (this.activeView === "events") this.events();
     else if (this.activeView === "missions" || this.activeView === "stats") this.missions();
+  },
+
+  softPatchCards() {
+    const el = document.getElementById("people-grid");
+    if (!el || !el.children.length) {
+      this.grid(true);
+      return;
+    }
+    el.querySelectorAll(".card").forEach(card => {
+      const p = this.state.people.find(x => x.id === card.dataset.id);
+      if (!p) return;
+      const em = dominantEmotion(p.emotions);
+      const meta = card.querySelector(".meta");
+      if (meta) meta.textContent = `${p.id.slice(-6)} · ${p.age} سال · ${p.job}`;
+      const chip = card.querySelector(".emotion-chip");
+      if (chip) {
+        chip.style.color = emotionColor(em);
+        chip.innerHTML = `${icon(p.alive ? "alive" : "dead")} ${EMOTION_FA[em]} · ${p.alive ? "زنده" : "فوت‌شده"}`;
+      }
+      const body = card.querySelector(".card-body");
+      if (body) body.textContent = `${p.activity} — ${p.home}. ایمان ${p.faith}، ثروت ${p.wealth}.`;
+      card.classList.toggle("dead", !p.alive);
+    });
   },
 
   renderAll(forcePowers) {
@@ -342,7 +362,8 @@ const UI = {
       toast(res.msg.split("\n")[0]);
       if (res.msg.includes("\n")) this.modal(`<h2>نتیجهٔ ${meta.name}</h2><p style="white-space:pre-wrap">${res.msg}</p>`);
       else this.closeModal();
-      this.renderAll(false);
+      this.stats();
+      this.softPatchCards();
     };
   }
 };
