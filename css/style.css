@@ -271,24 +271,38 @@ html, body { overflow: hidden; max-width: 100%; }
     z-index: 24; opacity: 0; pointer-events: none; transition: opacity .25s;
   }
   .app.nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
-  .world-stats { order: 3; width: 100%; justify-content: flex-start; gap: .3rem; }
-  .stat-pill { font-size: .65rem; padding: .15rem .35rem; }
+  .world-stats { order: 3; width: 100%; justify-content: flex-start; gap: .3rem; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .stat-pill { font-size: .65rem; padding: .15rem .35rem; flex-shrink: 0; }
   .topbar {
     padding: .4rem .55rem; gap: .35rem; flex-wrap: wrap;
     height: auto; min-height: 56px; align-content: center;
   }
-  .brand { flex: 1 1 auto; }
+  .brand { flex: 1 1 auto; min-width: 0; }
   .brand strong { font-size: .75rem; letter-spacing: 0; }
   .brand small { display: none; }
-  .time-controls { flex: 1 1 auto; justify-content: flex-end; }
+  .time-controls { flex: 0 0 auto; justify-content: flex-end; gap: .2rem; }
+  .time-controls button { min-width: 38px; min-height: 38px; padding: .25rem; }
   #time-display { font-size: .68rem; order: 4; width: 100%; margin: .15rem 0 0; }
-  .main { padding: .75rem .7rem 1.5rem; overflow-x: hidden; }
-  .toolbar { flex-direction: column; }
-  .toolbar input, .toolbar select, .toolbar button { width: 100%; }
-  .people-grid { grid-template-columns: 1fr; }
+  .main { padding: .65rem .55rem 1.5rem; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .toolbar { flex-direction: column; gap: .4rem; }
+  .toolbar input, .toolbar select, .toolbar button { width: 100%; max-width: 100%; box-sizing: border-box; }
+  .people-grid { grid-template-columns: 1fr; gap: .7rem; }
   .power-grid { grid-template-columns: 1fr; }
-  .modal-panel { width: 96vw; padding: 1rem; }
-  .prayer-acts button { min-height: 40px; }
+  .modal-panel { width: 96vw; max-height: 85vh; padding: .9rem; overflow-y: auto; }
+  .prayer-acts { gap: .3rem; }
+  .prayer-acts button { min-height: 42px; flex: 1 1 40%; font-size: .75rem; }
+  .card-head { gap: .55rem; padding: .75rem; }
+  .person-context { flex-wrap: wrap; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .divine-banner { top: 12%; min-width: 88vw; padding: .8rem 1rem; }
+  .sidebar { max-width: 100%; }
+  .icon-btn { width: 40px; height: 40px; }
+}
+
+@media (max-width: 400px) {
+  .brand strong { font-size: .68rem; }
+  .stat-pill { font-size: .6rem; }
+  .time-controls button { min-width: 34px; min-height: 34px; }
 }
 
 @media (min-width: 961px) {
@@ -363,4 +377,4 @@ body.theme-day .divine-banner {
 .power-card { transition: transform .2s, box-shadow .2s; }
 .power-card:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(155,125,255,.2); }
 @keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.people-grid .card { animation: cardIn .35s ease both; }
+.people-grid.animate-in .card { animation: cardIn .35s ease both; }
