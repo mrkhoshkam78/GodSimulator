@@ -245,8 +245,9 @@ const UI = {
       }</select></div>`;
     }
     if (f.type === "range") {
-      return `<div class="form-row"><label>${f.label}: <b id="pw-${f.id}-out">${f.value}</b></label>
-        <input id="pw-${f.id}" type="range" min="${f.min}" max="${f.max}" value="${f.value}"></div>`;
+      const v = Math.round(Number(f.value) || 0);
+      return `<div class="form-row"><label>${f.label}: <b id="pw-${f.id}-out">${v}</b></label>
+        <input id="pw-${f.id}" type="range" min="${f.min}" max="${f.max}" step="1" value="${v}"></div>`;
     }
     if (f.type === "number") {
       return `<div class="form-row"><label>${f.label}</label><input id="pw-${f.id}" type="number" value="${f.value??0}"></div>`;
@@ -273,13 +274,14 @@ const UI = {
 
   currentOf(p, powerId, key) {
     if (!p) return 50;
-    if (powerId === "emotion") return p.emotions?.[key || "hope"] ?? 50;
-    if (powerId === "personality") return p.traits?.[key || "courage"] ?? 50;
-    if (powerId === "wealth") return Math.min(200, p.wealth ?? 40);
-    if (powerId === "lifespan") return Math.max(1, (p.lifespan || 80) - (p.age || 30));
-    if (powerId === "relations") return 20;
-    if (powerId === "tech") return p.tech ?? 1;
-    return 50;
+    let n = 50;
+    if (powerId === "emotion") n = p.emotions?.[key || "hope"] ?? 50;
+    else if (powerId === "personality") n = p.traits?.[key || "courage"] ?? 50;
+    else if (powerId === "wealth") n = Math.min(200, p.wealth ?? 40);
+    else if (powerId === "lifespan") n = Math.max(1, (p.lifespan || 80) - (p.age || 30));
+    else if (powerId === "relations") n = 20;
+    else if (powerId === "tech") n = p.tech ?? 1;
+    return Math.round(Number(n) || 0);
   },
 
   syncPowerIntensity(powerId) {
@@ -289,9 +291,9 @@ const UI = {
     const valEl = document.getElementById("pw-value");
     if (!valEl || !p) return;
     const cur = this.currentOf(p, powerId, key);
-    valEl.value = cur;
+    valEl.value = String(cur);
     const out = document.getElementById("pw-value-out");
-    if (out) out.textContent = cur;
+    if (out) out.textContent = String(cur);
     const hint = document.getElementById("pw-intensity-hint");
     if (hint) {
       const label = powerId === "emotion" ? (EMOTION_FA[key] || key)
@@ -335,7 +337,9 @@ const UI = {
         const el = document.getElementById("pw-"+f.id);
         if (el) el.oninput = () => {
           const o = document.getElementById("pw-"+f.id+"-out");
-          if (o) o.textContent = el.value;
+          const n = Math.round(Number(el.value) || 0);
+          el.value = String(n);
+          if (o) o.textContent = String(n);
         };
       }
     });
@@ -348,7 +352,7 @@ const UI = {
         id: val("pw-id"),
         ids: scopeSel === "selected" ? [...this.selected] : undefined,
         key: val("pw-key"),
-        value: val("pw-value") ?? val("pw-val"),
+        value: Math.round(Number(val("pw-value") ?? val("pw-val") ?? 0)),
         text: val("pw-text"),
         mode: val("pw-mode") || val("pw-key"),
         kind: val("pw-kind") || val("pw-text"),

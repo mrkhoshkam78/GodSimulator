@@ -13,7 +13,7 @@ function seedWorld() {
     a.relations.push({id:b.id,name:b.name,type:pick(["دوست","همکار","خانواده"]),trust:rnd(20,80),love:rnd(10,70)});
   }
   return {
-    version: "1.1.0",
+    version: "1.1.1",
     time: {day:1, year:1, speed:1, paused:false, accMs:0},
     settings: { theme: "night", sfx: true },
     world: {
@@ -48,7 +48,7 @@ const Game = {
     this.state = fromSave || seedWorld();
     if (!this.state.time) this.state.time = {day:1, year:1, speed:1, paused:false, accMs:0};
     this.state.time.accMs = this.state.time.accMs || 0;
-    this.state.version = "1.1.0";
+    this.state.version = "1.1.1";
     this.state.settings = this.state.settings || { theme: "night", sfx: true };
     this.state.world.faith = this.state.world.faith ?? 55;
     this.state.world.awe = this.state.world.awe ?? 35;
@@ -271,7 +271,17 @@ if (audioEl) audioEl.onchange = e => {
     SaveSystem.persist(Game.state);
   }
   toast(SFX.enabled ? "افکت صوتی روشن شد." : "افکت صوتی خاموش شد.");
-  if (SFX.enabled) SFX.begin();
+  if (SFX.enabled) SFX.click();
+};
+const bgmEl = document.getElementById("chk-bgm");
+if (bgmEl) bgmEl.onchange = e => {
+  SFX.setBgm(e.target.checked);
+  if (Game.state) {
+    Game.state.settings = Game.state.settings || {};
+    Game.state.settings.bgm = e.target.checked;
+    SaveSystem.persist(Game.state);
+  }
+  toast(e.target.checked ? "موسیقی حماسی روشن شد." : "موسیقی خاموش شد.");
 };
 document.querySelectorAll(".theme-btn").forEach(btn => {
   btn.onclick = () => {
@@ -284,6 +294,6 @@ document.querySelectorAll(".theme-btn").forEach(btn => {
     }
     document.querySelectorAll(".theme-btn").forEach(b => b.classList.toggle("active", b.dataset.theme === theme));
     SFX.menu();
-    toast(theme === "day" ? "سپیده بر جهان تابید." : "شب کیهانی بازگشت.");
+    toast(theme === "day" ? "تم سپیدهٔ سینمایی فعال شد." : "تم شب کیهانی فعال شد.");
   };
 });
