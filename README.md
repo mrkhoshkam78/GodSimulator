@@ -1,38 +1,26 @@
-# Castle Defense (v1.7) — Premium Character Art Direction
+# Dart Arena — Professional Browser Darts
 
-## اجرا
-فایل `index.html` را باز کنید یا: `npx serve .`
+## How to Run (IMPORTANT)
 
-## کنترل‌ها
-- ماوس: انتخاب / استقرار نیرو
-- اسکرول روی پنل نیروها
-- 1/2/3 سرعت | ESC توقف | F تمام‌صفحه
-- 📖 در صفحه ارتقا = داستان شخصیت
+**Do not open index.html directly (file://).** ES modules and assets require a local server:
 
-## v1.7 — Premium Troop Production
+```bash
+cd darts_game
+npx serve .
+# or: python3 -m http.server 8080
+```
 
-### طراحی کاراکتر
-- سیلوئت و هویت بصری منحصربه‌فرد برای هر کلاس
-- بدن چندلایه: پا، تنه، شانه، سر، کلاه‌خود، سلاح
-- سایه، هایلایت، کمربند، چکمه‌ها، جزئیات فلز/چرم
+Then open the URL shown (e.g. http://localhost:3000).
 
-### تکامل ظاهری با سطح (نه فقط استت)
-- Lv 1–9: تجهیزات پایه
-- Lv 10–19: زره و سلاح بهتر
-- Lv 20–29: تجهیزات پیشرفته
-- Lv 30–39: ظاهر Elite + تزئینات
-- Lv 40–49: حضور قوی + درخشش
-- Lv 50: Legendary (هاله + ذرات مداری)
+If stuck on "Loading assets", you are almost certainly opening the file without a server.
 
-### انیمیشن
-- Idle با تنفس و تکان بدن
-- Attack با Anticipation + Impact + Follow-through
-- Hit reaction و Death
-- حرکت پا و بازو
+## Asset optimization
 
-### استقرار
-- **۱۲ جایگاه** استقرار نیرو در ۳ ستون
+All boards and darts are high-quality WebP:
+- Boards: max 1024px side, quality ~88
+- Darts: max height 280px, quality ~90
+- Total assets ≈ 164 KB (was ~17 MB)
 
-### کیفیت
-- استایل نزدیک به بازی‌های استراتژی premium (خوانایی + تناسب اغراق‌شده)
-- دارایی‌های procedural با لایه‌بندی؛ آماده برای جایگزینی با اسپرایت/Figma در آینده
+## Features
+
+501 / 301 / 701 / Around the Clock / Practice, AI, progression, checkout hints, local save.
