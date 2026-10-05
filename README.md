@@ -1,26 +1,47 @@
-# Dart Arena — Professional Browser Darts
+# Site Source Extractor
 
-## How to Run (IMPORTANT)
+Extract front-end source code from any public website into a ZIP file.
 
-**Do not open index.html directly (file://).** ES modules and assets require a local server:
+Downloads:
+- HTML
+- CSS (linked stylesheets)
+- JavaScript (linked scripts)
+- Images
+- Fonts
+
+## Requirements
+
+- Node.js 18+
+- Google Chrome (or Chromium / Edge)
+
+## Install & Run
 
 ```bash
-cd darts_game
-npx serve .
-# or: python3 -m http.server 8080
+git clone https://github.com/YOUR_USERNAME/site-source-extractor.git
+cd site-source-extractor
+npm start
 ```
 
-Then open the URL shown (e.g. http://localhost:3000).
+Open http://localhost:3001
 
-If stuck on "Loading assets", you are almost certainly opening the file without a server.
+1. Paste a public URL
+2. Click Extract
+3. Download the ZIP
 
-## Asset optimization
+## Project structure
 
-All boards and darts are high-quality WebP:
-- Boards: max 1024px side, quality ~88
-- Darts: max height 280px, quality ~90
-- Total assets ≈ 164 KB (was ~17 MB)
+```
+├── package.json
+├── README.md
+├── .gitignore
+├── server/
+│   └── index.js
+└── public/
+    ├── index.html
+    ├── styles.css
+    └── app.js
+```
 
-## Features
+## License
 
-501 / 301 / 701 / Around the Clock / Practice, AI, progression, checkout hints, local save.
+MIT

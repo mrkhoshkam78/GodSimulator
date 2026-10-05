@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استخراج کد سایت</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>استخراج کد سایت</h1>
+      <p>آدرس سایت را وارد کنید تا HTML + CSS + JS + تصاویر و فونت‌ها را به صورت ZIP دریافت کنید</p>
+    </header>
+
+    <div class="card">
+      <label for="url">آدرس سایت (URL)</label>
+      <div class="row">
+        <input type="url" id="url" placeholder="https://example.com" dir="ltr">
+        <button id="btn" class="btn">استخراج</button>
+      </div>
+      <p class="hint">فقط صفحات عمومی. کدهای سمت سرور و بک‌اند استخراج نمی‌شوند.</p>
+    </div>
+
+    <div class="card progress" id="progress" hidden>
+      <div class="progress-info">
+        <span id="stage">در حال شروع…</span>
+        <span id="pct">0%</span>
+      </div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+    </div>
+
+    <div class="card result" id="result" hidden>
+      <h2>آماده شد ✓</h2>
+      <p id="summary"></p>
+      <a id="download" class="btn" href="#">دانلود ZIP</a>
+    </div>
+
+    <div class="card error" id="error" hidden>
+      <h2>خطا</h2>
+      <p id="errMsg"></p>
+      <button class="btn secondary" id="retry">تلاش مجدد</button>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
