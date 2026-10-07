@@ -2,191 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Dart Arena — Professional Darts</title>
-  <link rel="stylesheet" href="css/main.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Infinite Alchemy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app">
-    <!-- Loading -->
-    <div id="loading-screen" class="screen active">
-      <div class="loader">
-        <div class="loader-ring"></div>
-        <h1>DART ARENA</h1>
-        <p id="load-status">Loading assets...</p>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Infinite Alchemy</h1>
+        <p>Four elements. Five hundred bindings.</p>
       </div>
     </div>
-
-    <!-- Main Menu -->
-    <div id="main-menu" class="screen">
-      <div class="menu-bg"></div>
-      <header class="menu-header">
-        <h1 class="logo">DART<span>ARENA</span></h1>
-        <div class="player-chip" id="menu-player-chip">
-          <span class="chip-level" id="menu-level">1</span>
-          <div>
-            <div class="chip-name" id="menu-name">Player</div>
-            <div class="chip-title" id="menu-title">Rookie</div>
-          </div>
-        </div>
-      </header>
-      <nav class="menu-nav">
-        <button class="menu-btn primary" data-action="play">PLAY</button>
-        <button class="menu-btn" data-action="modes">GAME MODES</button>
-        <button class="menu-btn" data-action="collection">COLLECTION</button>
-        <button class="menu-btn" data-action="profile">PROFILE</button>
-        <button class="menu-btn" data-action="stats">STATISTICS</button>
-        <button class="menu-btn" data-action="settings">SETTINGS</button>
-      </nav>
-      <footer class="menu-footer">
-        <span>Professional Darts Experience</span>
-      </footer>
-    </div>
-
-    <!-- Mode Select -->
-    <div id="mode-select" class="screen">
-      <button class="back-btn" data-back="main-menu">← Back</button>
-      <h2 class="screen-title">Select Mode</h2>
-      <div class="mode-grid">
-        <button class="mode-card" data-mode="501"><span class="mode-name">501</span><span class="mode-desc">Classic competitive</span></button>
-        <button class="mode-card" data-mode="301"><span class="mode-name">301</span><span class="mode-desc">Fast match</span></button>
-        <button class="mode-card" data-mode="701"><span class="mode-name">701</span><span class="mode-desc">Long battle</span></button>
-        <button class="mode-card" data-mode="around"><span class="mode-name">Around the Clock</span><span class="mode-desc">1 to 20 + Bull</span></button>
-        <button class="mode-card" data-mode="cricket"><span class="mode-name">Cricket</span><span class="mode-desc">Strategic marks</span></button>
-        <button class="mode-card" data-mode="practice"><span class="mode-name">Practice</span><span class="mode-desc">Free throw</span></button>
+    <div class="meters">
+      <div class="meter">
+        <span class="meter-label">Level <b id="level">1</b></span>
+        <div class="bar"><i id="xp-bar"></i></div>
+        <span class="meter-sub" id="xp-text">0 / 40 XP</span>
       </div>
-      <div class="rules-panel" id="rules-panel">
-        <h3>Match Rules</h3>
-        <div class="rule-row">
-          <label>Best of</label>
-          <select id="best-of"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option></select>
-        </div>
-        <div class="rule-row">
-          <label>In Rule</label>
-          <select id="in-rule"><option value="open">Open In</option><option value="double">Double In</option></select>
-        </div>
-        <div class="rule-row">
-          <label>Out Rule</label>
-          <select id="out-rule"><option value="double" selected>Double Out</option><option value="open">Open Out</option></select>
-        </div>
-        <div class="rule-row">
-          <label>AI Difficulty</label>
-          <select id="ai-diff">
-            <option value="rookie">Rookie</option>
-            <option value="amateur" selected>Amateur</option>
-            <option value="pro">Pro</option>
-            <option value="master">Master</option>
-            <option value="legend">Legend</option>
-          </select>
-        </div>
-        <button class="menu-btn primary" id="start-match-btn">START MATCH</button>
+      <div class="meter">
+        <span class="meter-label">Discoveries</span>
+        <div class="bar gold"><i id="prog-bar"></i></div>
+        <span class="meter-sub" id="prog-text">0 / 500</span>
       </div>
     </div>
-
-    <!-- Collection -->
-    <div id="collection" class="screen">
-      <button class="back-btn" data-back="main-menu">← Back</button>
-      <h2 class="screen-title">Collection</h2>
-      <div class="tabs">
-        <button class="tab active" data-tab="darts">Darts</button>
-        <button class="tab" data-tab="boards">Boards</button>
-      </div>
-      <div id="darts-tab" class="tab-content active">
-        <div class="collection-grid" id="darts-grid"></div>
-      </div>
-      <div id="boards-tab" class="tab-content">
-        <div class="collection-grid" id="boards-grid"></div>
-      </div>
+    <div class="top-actions">
+      <button type="button" id="btn-sound" class="ghost" title="Toggle sound">Sound</button>
+      <button type="button" id="btn-export" class="ghost">Export</button>
+      <button type="button" id="btn-import" class="ghost">Import</button>
+      <input id="import-file" type="file" accept="application/json" hidden />
+      <button type="button" id="btn-reset" class="ghost danger">Reset</button>
     </div>
+  </header>
 
-    <!-- Profile -->
-    <div id="profile" class="screen">
-      <button class="back-btn" data-back="main-menu">← Back</button>
-      <h2 class="screen-title">Profile</h2>
-      <div class="profile-card">
-        <div class="avatar-placeholder">🎯</div>
-        <input type="text" id="nickname-input" maxlength="16" placeholder="Nickname" />
-        <div class="level-block">
-          <span class="lvl-label">LEVEL</span>
-          <span class="lvl-num" id="prof-level">1</span>
-          <div class="xp-bar"><div class="xp-fill" id="prof-xp-fill"></div></div>
-          <span class="xp-text" id="prof-xp-text">0 / 100</span>
-        </div>
-        <div class="title-display" id="prof-title">Rookie</div>
-        <div class="equip-row">
-          <div>Dart: <span id="prof-dart">—</span></div>
-          <div>Board: <span id="prof-board">—</span></div>
-        </div>
-        <div class="stat-grid" id="prof-stats"></div>
+  <nav class="tabs" aria-label="Sections">
+    <button type="button" data-tab="lab" class="active">Lab</button>
+    <button type="button" data-tab="items">Items</button>
+    <button type="button" data-tab="book">Codex</button>
+  </nav>
+
+  <main>
+    <section class="panel inventory" data-panel="items">
+      <div class="panel-head">
+        <h2>Reagents</h2>
+        <input id="search" type="search" placeholder="Search discoveries…" autocomplete="off" />
       </div>
-    </div>
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="inventory"></div>
+    </section>
 
-    <!-- Stats -->
-    <div id="stats" class="screen">
-      <button class="back-btn" data-back="main-menu">← Back</button>
-      <h2 class="screen-title">Statistics</h2>
-      <div class="stats-list" id="stats-list"></div>
-    </div>
-
-    <!-- Settings -->
-    <div id="settings" class="screen">
-      <button class="back-btn" data-back="main-menu">← Back</button>
-      <h2 class="screen-title">Settings</h2>
-      <div class="settings-panel">
-        <div class="setting-row"><label>Master Volume</label><input type="range" id="vol-master" min="0" max="100" value="80" /></div>
-        <div class="setting-row"><label>SFX Volume</label><input type="range" id="vol-sfx" min="0" max="100" value="90" /></div>
-        <div class="setting-row"><label>Music Volume</label><input type="range" id="vol-music" min="0" max="100" value="40" /></div>
-        <div class="setting-row"><label>Mute</label><input type="checkbox" id="mute-all" /></div>
+    <section class="panel lab" data-panel="lab">
+      <div class="panel-head">
+        <h2>Crucible</h2>
+        <button type="button" id="hint" class="ghost">Hint <span id="hint-count">3</span></button>
       </div>
-    </div>
-
-    <!-- Gameplay -->
-    <div id="gameplay" class="screen">
-      <div class="game-hud top">
-        <div class="hud-player left">
-          <div class="hud-name" id="p1-name">You</div>
-          <div class="hud-score" id="p1-score">501</div>
-          <div class="hud-legs" id="p1-legs">0</div>
-        </div>
-        <div class="hud-center">
-          <div class="match-info" id="match-info">Leg 1 · Best of 3</div>
-          <div class="turn-info" id="turn-info">Your Turn · Dart 1/3</div>
-          <div class="checkout-hint" id="checkout-hint"></div>
-        </div>
-        <div class="hud-player right">
-          <div class="hud-name" id="p2-name">AI</div>
-          <div class="hud-score" id="p2-score">501</div>
-          <div class="hud-legs" id="p2-legs">0</div>
-        </div>
+      <div class="crucible" id="crucible">
+        <button type="button" class="slot" id="slot-a" aria-label="First reagent"></button>
+        <div class="merge-sigil" aria-hidden="true"><span></span></div>
+        <button type="button" class="slot" id="slot-b" aria-label="Second reagent"></button>
       </div>
-
-      <div class="board-container" id="board-container">
-        <canvas id="game-canvas"></canvas>
-        <div class="power-meter" id="power-meter">
-          <div class="power-fill" id="power-fill"></div>
-        </div>
-        <div class="aim-hint" id="aim-hint">Aim · Hold to charge · Release to throw</div>
+      <button type="button" id="combine" class="combine" disabled>Bind</button>
+      <p class="lab-note" id="lab-note">Place two reagents in the crucible. Order does not matter. The same pair always yields the same work.</p>
+      <div class="result" id="result" hidden></div>
+      <div class="challenges">
+        <h3>Challenges</h3>
+        <ul id="challenge-list"></ul>
       </div>
+    </section>
 
-      <div class="game-hud bottom">
-        <div class="dart-slots" id="dart-slots">
-          <div class="slot" data-slot="0"></div>
-          <div class="slot" data-slot="1"></div>
-          <div class="slot" data-slot="2"></div>
-        </div>
-        <div class="last-score" id="last-score">—</div>
-        <div class="avg-display">Avg <span id="avg-score">0.0</span></div>
-        <button class="hud-btn" id="quit-btn">Quit</button>
+    <section class="panel book" data-panel="book">
+      <div class="panel-head">
+        <h2>Codex</h2>
+        <span class="meter-sub" id="book-count"></span>
       </div>
+      <article class="detail" id="detail">
+        <p class="empty-detail">Select a discovery to read its binding.</p>
+      </article>
+      <h3>Unlocked bindings</h3>
+      <div class="codex-list" id="codex-list"></div>
+      <div class="achieve">
+        <h3>Achievements</h3>
+        <ul id="achieve-list"></ul>
+      </div>
+    </section>
+  </main>
 
-      <div class="floating-scores" id="floating-scores"></div>
-      <div class="overlay-msg" id="overlay-msg"></div>
-    </div>
-  </div>
-
-  <script type="module" src="js/main.js"></script>
+  <div class="toast-wrap" id="toasts" aria-live="polite"></div>
+  <script src="data/alchemy.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
