@@ -108,27 +108,38 @@
   function iconSVG(item) {
     const h = hash(item.id);
     const hue = item.hue;
-    const c1 = `hsl(${hue} 62% 58%)`;
-    const c2 = `hsl(${(hue + 28) % 360} 50% 32%)`;
+    const gid = `g${item.id}`;
+    const c1 = `hsl(${hue} 68% 62%)`;
+    const c2 = `hsl(${(hue + 32) % 360} 55% 28%)`;
+    const c3 = `hsl(${(hue + 12) % 360} 70% 78%)`;
     const shape = h % 6;
     const glyphs = ["◆", "✶", "☾", "✦", "⚘", "⚙", "◉", "⚔", "☘", "✧"];
     const glyph = glyphs[h % glyphs.length];
+    const fill = `url(#${gid})`;
     let body = "";
-    if (shape === 0) body = `<circle cx="32" cy="32" r="18" fill="url(#g)" stroke="${c1}" />`;
-    else if (shape === 1) body = `<polygon points="32,10 52,32 32,54 12,32" fill="url(#g)" stroke="${c1}" />`;
-    else if (shape === 2) body = `<path d="M32 8 C44 20 50 28 32 56 C14 28 20 20 32 8Z" fill="url(#g)" stroke="${c1}" />`;
-    else if (shape === 3) body = `<rect x="14" y="14" width="36" height="36" rx="8" fill="url(#g)" stroke="${c1}" transform="rotate(${h % 20 - 10} 32 32)" />`;
-    else if (shape === 4) body = `<polygon points="32,8 38,24 56,24 42,34 48,52 32,42 16,52 22,34 8,24 26,24" fill="url(#g)" stroke="${c1}" />`;
-    else body = `<path d="M18 40c8-18 20-18 28 0 6 10-2 16-14 16S12 50 18 40z" fill="url(#g)" stroke="${c1}" />`;
-    const ring = (h >> 3) % 2 ? `<circle cx="32" cy="32" r="22" fill="none" stroke="${c1}" stroke-opacity="0.45" stroke-dasharray="3 4" />` : "";
-    return `<svg viewBox="0 0 64 64" aria-hidden="true">
-      <defs><radialGradient id="g${item.id}" cx="40%" cy="35%">
-        <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/>
-      </radialGradient></defs>
-      ${ring.replace('url(#g)', `url(#g${item.id})`) ? "" : ""}
-      ${body.replace("url(#g)", `url(#g${item.id})`)}
-      ${ring}
-      <text x="32" y="37" text-anchor="middle" font-size="14" fill="#fff8ee" font-family="Palatino, serif">${glyph}</text>
+    if (shape === 0) body = `<circle cx="32" cy="32" r="17.5" fill="${fill}" stroke="${c3}" stroke-width="1.4"/>`;
+    else if (shape === 1) body = `<polygon points="32,9 51,32 32,55 13,32" fill="${fill}" stroke="${c3}" stroke-width="1.3" stroke-linejoin="round"/>`;
+    else if (shape === 2) body = `<path d="M32 8 C45 20 51 28 32 55 C13 28 19 20 32 8Z" fill="${fill}" stroke="${c3}" stroke-width="1.3" stroke-linejoin="round"/>`;
+    else if (shape === 3) body = `<rect x="14" y="14" width="36" height="36" rx="9" fill="${fill}" stroke="${c3}" stroke-width="1.3" transform="rotate(${(h % 16) - 8} 32 32)"/>`;
+    else if (shape === 4) body = `<polygon points="32,8 38,24 55,24 42,34 47,51 32,41 17,51 22,34 9,24 26,24" fill="${fill}" stroke="${c3}" stroke-width="1.2" stroke-linejoin="round"/>`;
+    else body = `<path d="M18 39c8-17 20-17 28 0 6 9-2 15-14 15S12 48 18 39z" fill="${fill}" stroke="${c3}" stroke-width="1.3" stroke-linejoin="round"/>`;
+    const ring = (h >> 3) % 2
+      ? `<circle cx="32" cy="32" r="22.5" fill="none" stroke="${c1}" stroke-opacity="0.4" stroke-width="1.2" stroke-dasharray="2.5 3.5"/>`
+      : `<circle cx="32" cy="32" r="23" fill="none" stroke="${c1}" stroke-opacity="0.22" stroke-width="1"/>`;
+    return `<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+      <defs>
+        <radialGradient id="${gid}" cx="38%" cy="32%" r="70%">
+          <stop offset="0%" stop-color="${c3}"/>
+          <stop offset="45%" stop-color="${c1}"/>
+          <stop offset="100%" stop-color="${c2}"/>
+        </radialGradient>
+        <filter id="f${item.id}" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" result="b"/>
+          <feOffset dy="1"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#f${item.id})">${body}${ring}</g>
+      <text x="32" y="37.5" text-anchor="middle" font-size="13" fill="#f5fffc" font-family="Palatino, Georgia, serif" opacity="0.95">${glyph}</text>
     </svg>`;
   }
 
