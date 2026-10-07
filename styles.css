@@ -1,16 +1,17 @@
 :root {
-  --ink: #f8ecd8;
-  --muted: #cbb59a;
-  --gold: #f0d7ae;
+  --ink: #e8f7f5;
+  --muted: #9ec4c0;
+  --gold: #7ee8d8;
+  --accent: #2ad4c2;
   font-family: "Source Sans 3", "Segoe UI", sans-serif;
   color: var(--ink);
-  background: #120c09 url("assets/bg-fallback.png") center / cover no-repeat fixed;
+  background: #06131a url("assets/bg-fallback.png") center / cover no-repeat fixed;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
 body {
   min-height: 100vh;
-  background: #120c09 url("assets/bg.webp") center / cover no-repeat fixed;
+  background: #06131a url("assets/bg.webp") center / cover no-repeat fixed;
   touch-action: manipulation;
 }
 button, .card, .slot, .chip { touch-action: manipulation; }

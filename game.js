@@ -222,6 +222,8 @@
     });
     $("codex-list").innerHTML = rows.join("") || `<p class="empty-detail">No bindings yet.</p>`;
   }
+
+  function renderDetail(id) {
     const node = $("detail");
     if (!id || !items[id]) {
       node.innerHTML = `<p class="empty-detail">Select a discovery to read its binding.</p>`;
