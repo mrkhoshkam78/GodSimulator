@@ -161,12 +161,12 @@
   function renderInventory() {
     const list = visibleItems();
     $("inventory").innerHTML = list.map((it) => `
-      <button type="button" class="card ${selected === it.id ? "selected" : ""}" data-id="${it.id}">
+      <div class="card ${selected === it.id ? "selected" : ""}" data-id="${it.id}" role="button" tabindex="0">
         <span class="star ${state.favorites.includes(it.id) ? "on" : ""}" data-fav="${it.id}" title="Favorite">★</span>
         ${iconHTML(it)}
         <div class="name">${it.name}</div>
         <div class="rarity ${it.rarity}">${it.rarity}</div>
-      </button>`).join("") || `<p class="empty-detail">No reagents match.</p>`;
+      </div>`).join("") || `<p class="empty-detail">No reagents match.</p>`;
   }
 
   function renderSlots() {
@@ -393,10 +393,10 @@
     renderInventory();
   });
 
-  $("inventory").addEventListener("click", (e) => {
+  document.addEventListener("click", (e) => {
     const fav = e.target.closest("[data-fav]");
     if (fav) {
-      e.stopPropagation();
+      e.preventDefault();
       const id = fav.dataset.fav;
       if (state.favorites.includes(id)) state.favorites = state.favorites.filter((x) => x !== id);
       else state.favorites.push(id);
@@ -406,8 +406,7 @@
       return;
     }
     const card = e.target.closest("[data-id]");
-    if (!card) return;
-    place(card.dataset.id);
+    if (card) place(card.dataset.id);
   });
 
   $("filters").addEventListener("click", (e) => {
